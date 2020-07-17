@@ -1,0 +1,31 @@
+# Analysis parameters #
+
+OUT_DIR = C:\Users\yeves\OneDrive - lafayette.edu\School Documents\Competition, Research Documents\SummerResearch2020\data
+BASE_DIR = C:\Users\yeves\OneDrive - lafayette.edu\School Documents\Competition, Research Documents\SummerResearch2020\sample
+DATA_EMPTY = 114955\Oscilloscope\voltageDataScopeRun20200319114955(1).csv
+DATA_ACTUAL = 120222\Oscilloscope
+DESCRIPTION = Test_Sample
+M_G_FACTOR_FILE = MCoil\20200317110751gfactors.csv
+H_G_FACTOR_FILE = HCoil\20200317110751gfactors.csv
+CUTOFF_FREQ = 4000000
+KNOWN_FREQ = 0
+M_OVER_H_REAL_SUB = 0
+M_OVER_H_IMAG_SUB = 0
+M_OVER_H_CALIB = 0
+pM_pH_DIFF_PHASE_ADJ = 0
+M_OVER_H0_SUB = 0
+NUM_PERIOD = 2
+BEGIN_TIME = 0
+WITH_EMPTY = TRUE
+TEMP_DIR = 120222\Opsens
+TIME_DIR = 
+
+
+# Plotting parameters #
+H_MIN = 50
+H_MAX = 60
+LEGEND = HC
+PLOT = H_INT_RECONSTRUCTED_REAL_LIST:M_INT_RECONSTRUCTED_REAL_LIST || H_RECONSTRUCTED_REAL_LIST:M_RECONSTRUCTED_REAL_LIST
+PLOT_LABEL = H (kA/m):M (kA/m) || H (kA/m):M (kA/m)
+PROPERTY_PLOT = TEMPERATURE:HC || INTEGRAL:HC
+PROPERTY_PLOT_LABEL = Temperature(degC):Hc(T) || integral:Hc(T)
