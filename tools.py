@@ -517,11 +517,11 @@ class Reader(object):
                     collectionKind = 0
                 
                 if "Oscilloscope Run" in df.columns and "Temp" in df.columns:
-                    if self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] is None:
+                    if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime][collectionKind] = df
                 elif "Time" in df.columns and "Temp" in df.columns:
-                    if self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] is None:
+                    if datetime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime][collectionKind] = df
                 else:
@@ -550,7 +550,7 @@ class Reader(object):
                     collectionKind = 0
                 
                 if "Program Start Time" in df.columns and "Opsens Start Time" in df.columns:
-                    if self._data["DICT_DATAFRAME_TIME"][dateTime] is None:
+                    if dateTime not in self._data["DICT_DATAFRAME_TIME"]:
                         self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
                 else:
@@ -618,8 +618,13 @@ class Reader(object):
         """
         regex = re.compile(r'\d{14}')
         dateTime = regex.findall(filename)[0]
+        
         regex = re.compile(r'CollectionKind\d+')
-        kind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        try:
+            kind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        except:
+            kind = 0
+            
         tempDf = None
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
             if kind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime]:
@@ -673,7 +678,12 @@ class Reader(object):
         regex = re.compile(r'\d{14}')
         dateTime = regex.findall(filename)[0]
         regex = re.compile(r'CollectionKind\d+')
-        collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        
+        try:
+            collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        except:
+            collectionKind = 0
+            
         timeDf = None
         if dateTime in self._data["DICT_DATAFRAME_TIME"]:
             if collectionKind in self._data["DICT_DATAFRAME_TIME"][dateTime]:
@@ -731,7 +741,10 @@ class Reader(object):
         regex = re.compile(r'\d{14}')
         dateTime = regex.findall(filename)[0]
         regex = re.compile(r'CollectionKind\d+')
-        collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        try:
+            collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        except:
+            collectionKind = 0
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
             if collectionKind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime]:
                 return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime].get(collectionKind)
