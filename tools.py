@@ -549,7 +549,7 @@ class Reader(object):
                 except:
                     collectionKind = 0
                 
-                if "Oscilloscope Run" in df.columns and "Time" in df.columns:
+                if "Program Start Time" in df.columns and "Opsens Start Time" in df.columns:
                     if self._data["DICT_DATAFRAME_TIME"][dateTime] is None:
                         self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
