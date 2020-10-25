@@ -509,34 +509,52 @@ class Reader(object):
                     dateTime = regex.findall(file)[0]
                 except:
                     raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset.")
-                    
+                
+                try:
+                    regex = re.compile(r'CollectionKind\d+')
+                    collectionKind = int(regex.findall(file)[0].lstrip('CollectionKind'))
+                except:
+                    collectionKind = -1
+                
                 if "Oscilloscope Run" in df.columns and "Temp" in df.columns:
-                    self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = df
+                    if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
+                        self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = {}
+                    self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime][collectionKind] = df
                 elif "Time" in df.columns and "Temp" in df.columns:
-                    self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = df
+                    if datetime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
+                        self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = {}
+                    self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime][collectionKind] = df
                 else:
                     raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset.")
         
-        # self._data["DICT_DATAFRAME_TIME"] = {}
-        # timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
+        self._data["DICT_DATAFRAME_TIME"] = {}
+        timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
         
-        # if not os.path.exists(timePath):
-        #     raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
+        if not os.path.exists(timePath):
+            raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
         
-        # for file in os.listdir(timePath):
-        #     if ".csv" in file:
-        #         df = pd.read_csv(os.path.join(timePath, file))
-        #         regex = re.compile(r'\d{14}')
+        for file in os.listdir(timePath):
+            if ".csv" in file:
+                df = pd.read_csv(os.path.join(timePath, file))
+                regex = re.compile(r'\d{14}')
                 
-        #         try:
-        #             dateTime = regex.findall(file)[0]
-        #         except:
-        #             raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
-                    
-        #         if "Oscilloscope Run" in df.columns and "Time" in df.columns:
-        #             self._data["DICT_DATAFRAME_TIME"][dateTime] = df
-        #         else:
-        #             raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
+                try:
+                    dateTime = regex.findall(file)[0]
+                except:
+                    raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
+                
+                try:
+                    regex = re.compile(r'CollectionKind\d+')
+                    collectionKind = int(regex.findall(file)[0].lstrip('CollectionKind'))
+                except:
+                    collectionKind = -1
+                
+                if "Program Start Time" in df.columns and "Opsens Start Time" in df.columns:
+                    if dateTime not in self._data["DICT_DATAFRAME_TIME"]:
+                        self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
+                    self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
+                else:
+                    raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
     
     def get(self, prop: str, kind: bool=False) -> Any:
         """
@@ -600,6 +618,13 @@ class Reader(object):
         """
         regex = re.compile(r'\d{14}')
         dateTime = regex.findall(filename)[0]
+        
+        regex = re.compile(r'CollectionKind\d+')
+        try:
+            kind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        except:
+            kind = -1
+            
         tempDf = None
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
             tempDf = self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"].get(dateTime)
@@ -612,6 +637,82 @@ class Reader(object):
             return tempDf["Temp"][value - 1]
         except KeyError:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
+            
+    def getTime(self, filename: str, kind: str, run: int = 0, relative:bool = True) -> float:
+        """
+        Returns a specified time data of pertaining to a voltage run dataset.
+
+        Parameters
+        ----------
+        filename : str
+            Filename of voltage run dataset.
+        
+        kind: str
+            Nature of time value to be returned. The kinds are:
+                * "program" -> Overall start time of program
+                * "oscilloscope" -> Start time of an oscilloscope run
+                * "opsens" -> Start time of Opsens thermometer collection
+        
+        run: int
+            This returns a specific run's start time when the value of `kind` is "oscilloscope"
+            Default value is 0.
+        
+        relative: bool
+            This returns the time value relative to the program start time if True.
+            Default value is True.
+
+        Raises
+        ------
+        ReaderError
+            Raised when:
+                * When Temp-V-Run Series data of voltage run is not added to TEMP_DIR.
+
+        Returns
+        -------
+        float
+            Temperature during voltage run during data collection.
+        """
+        regex = re.compile(r'\d{14}')
+        dateTime = regex.findall(filename)[0]
+        regex = re.compile(r'CollectionKind\d+')
+        
+        try:
+            collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        except:
+            collectionKind = -1
+            
+        timeDf = None
+        if dateTime in self._data["DICT_DATAFRAME_TIME"]:
+            if collectionKind in self._data["DICT_DATAFRAME_TIME"][dateTime]:
+                timeDf = self._data["DICT_DATAFRAME_TEMPERATURE"][dateTime].get(collectionKind)
+            else:
+                raise ReaderError(collectionKind, "Time-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.")
+        else:
+            raise ReaderError(dateTime, "Time data of this date-time value not added to TIME_DIR.")
+        
+        if kind == "program":
+            if relative:
+                return 0
+            return timeDf.iloc[0,0].tolist()[0]
+        elif kind == "opsens":
+            if relative:
+                return timeDf.iloc[2,0].tolist()[0]
+            return timeDf.iloc[1,0].tolist()[0]
+        elif kind == "oscilloscope":
+            regex = re.compile(r'\W\d+\W')
+            value = int(regex.findall(filename)[0].strip('()'))
+            if relative:
+                try:
+                    return timeDf["Voltage Relative Start Time Collection " + str(value)][0]
+                except KeyError:
+                    raise ReaderError(dateTime, "Time data of this date-time value does not contain start time value for Run "+str(value))
+            else:
+               try:
+                    return timeDf["Voltage Start Time Collection " + str(value)][0]
+               except KeyError:
+                    raise ReaderError(dateTime, "Time data of this date-time value does not contain start time value for Run "+str(value))
+        else:
+            raise ReaderError(kind, "Reader.getTime() `kind` option is not an expected value.")
         
     def getTempSeriesDf(self, filename: str) -> pd.DataFrame:
         """
@@ -636,6 +737,11 @@ class Reader(object):
         """
         regex = re.compile(r'\d{14}')
         dateTime = regex.findall(filename)[0]
+        regex = re.compile(r'CollectionKind\d+')
+        try:
+            collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
+        except:
+            collectionKind = -1
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
             return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"].get(dateTime)
         else:

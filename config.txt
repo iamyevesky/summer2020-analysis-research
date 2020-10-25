@@ -18,7 +18,7 @@ NUM_PERIOD = 2
 BEGIN_TIME = 0
 WITH_EMPTY = TRUE
 TEMP_DIR = 120222\Opsens
-TIME_DIR = 
+TIME_DIR = 120222\Time
 
 
 # Plotting parameters #
