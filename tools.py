@@ -627,7 +627,10 @@ class Reader(object):
             
         tempDf = None
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
-            tempDf = self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"].get(dateTime)
+            if kind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime]:
+                tempDf = self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime].get(kind)
+            else:
+                raise ReaderError(kind, "Temp-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.")
         else:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
             
@@ -743,7 +746,10 @@ class Reader(object):
         except:
             collectionKind = -1
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
-            return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"].get(dateTime)
+            if collectionKind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime]:
+                return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime].get(collectionKind)
+            else:
+               raise ReaderError(collectionKind, "Temp-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.") 
         else:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
 
