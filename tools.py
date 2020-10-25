@@ -527,16 +527,16 @@ class Reader(object):
                 else:
                     raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset.")
         
-        self._data["DICT_DATAFRAME_TIME"] = {}
-        timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
+        # self._data["DICT_DATAFRAME_TIME"] = {}
+        # timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
         
-        if not os.path.exists(timePath):
-            raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
+        # if not os.path.exists(timePath):
+        #     raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
         
-        for file in os.listdir(timePath):
-            if ".csv" in file:
-                df = pd.read_csv(os.path.join(timePath, file))
-                regex = re.compile(r'\d{14}')
+        # for file in os.listdir(timePath):
+        #     if ".csv" in file:
+        #         df = pd.read_csv(os.path.join(timePath, file))
+        #         regex = re.compile(r'\d{14}')
                 
                 try:
                     dateTime = regex.findall(file)[0]
@@ -618,7 +618,6 @@ class Reader(object):
         """
         regex = re.compile(r'\d{14}')
         dateTime = regex.findall(filename)[0]
-        
         regex = re.compile(r'CollectionKind\d+')
         try:
             kind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
@@ -627,10 +626,7 @@ class Reader(object):
             
         tempDf = None
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
-            if kind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime]:
-                tempDf = self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime].get(kind)
-            else:
-                raise ReaderError(kind, "Temp-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.")
+            tempDf = self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"].get(dateTime)
         else:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
             
@@ -746,10 +742,7 @@ class Reader(object):
         except:
             collectionKind = -1
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
-            if collectionKind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime]:
-                return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime].get(collectionKind)
-            else:
-               raise ReaderError(collectionKind, "Temp-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.") 
+            return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"].get(dateTime)
         else:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
 
