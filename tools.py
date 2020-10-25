@@ -514,7 +514,7 @@ class Reader(object):
                     regex = re.compile(r'CollectionKind\d+')
                     collectionKind = int(regex.findall(file)[0].lstrip('CollectionKind'))
                 except:
-                    collectionKind = 0
+                    collectionKind = -1
                 
                 if "Oscilloscope Run" in df.columns and "Temp" in df.columns:
                     if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
@@ -547,7 +547,7 @@ class Reader(object):
                     regex = re.compile(r'CollectionKind\d+')
                     collectionKind = int(regex.findall(file)[0].lstrip('CollectionKind'))
                 except:
-                    collectionKind = 0
+                    collectionKind = -1
                 
                 if "Program Start Time" in df.columns and "Opsens Start Time" in df.columns:
                     if dateTime not in self._data["DICT_DATAFRAME_TIME"]:
@@ -623,7 +623,7 @@ class Reader(object):
         try:
             kind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
         except:
-            kind = 0
+            kind = -1
             
         tempDf = None
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
@@ -682,7 +682,7 @@ class Reader(object):
         try:
             collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
         except:
-            collectionKind = 0
+            collectionKind = -1
             
         timeDf = None
         if dateTime in self._data["DICT_DATAFRAME_TIME"]:
@@ -744,7 +744,7 @@ class Reader(object):
         try:
             collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))
         except:
-            collectionKind = 0
+            collectionKind = -1
         if dateTime in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
             if collectionKind in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime]:
                 return self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime].get(collectionKind)
