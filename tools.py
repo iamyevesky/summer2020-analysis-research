@@ -200,6 +200,8 @@ class Writer(object):
             valueListX = []
             valueListY = []
             for key in self._dict:
+                if key == "EMPTY":
+                    continue
                 try:
                     valueListX.append(self._dict.get(key)[1][x])
                 except:
@@ -313,6 +315,8 @@ class Writer(object):
             raise WriterError(y, "Y-parameter not defined properly for PLOT parameter in configuration filefor plot kind: "+x+':'+y)
         
         for key in self._dict:
+            if key == "EMPTY":
+                continue
             if self._dict.get(key)[1]["H_MAX"] >= self._reader.get("H_MIN", Reader.asFloat) and self._dict.get(key)[1]["H_MAX"] <= self._reader.get("H_MAX", Reader.asFloat):
                 numOfColors += 1
                 if dataDict.get(self._roundNum(self._dict.get(key)[1][legend], 2)) is None:
@@ -403,10 +407,10 @@ class Reader(object):
 
         """
         self._data = {"OUT_DIR":"", "BASE_DIR":"", "M_G_FACTOR_FILE":"", "H_G_FACTOR_FILE":"", "DATA_EMPTY":"", "DATA_ACTUAL":"", 
-                     "DESCRIPTION":"", "CUTOFF_FREQ":"", "KNOWN_FREQ":"", "M_OVER_H_REAL_SUB":"", "M_OVER_H_IMAG_SUB":"", 
-                     "M_OVER_H_CALIB":"", "pM_pH_DIFF_PHASE_ADJ":"", "M_OVER_H0_SUB":"", "NUM_PERIOD":"", 
-                     "BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"", "H_MAX":"", "LEGEND":"",
-                     "PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": ""}
+                     "DESCRIPTION":"", "CUTOFF_FREQ":"", "KNOWN_FREQ":"", "M_OVER_H_REAL_SUB":"", "M_OVER_H_IMAG_SUB":"", "V_H_OFFSET":"",
+                     "M_OVER_H_CALIB":"", "pM_pH_DIFF_PHASE_ADJ":"", "M_OVER_H0_SUB":"", "NUM_PERIOD":"", "NON_LINEAR_SUB":"",
+                     "H_PHASE_REAL_SUB":"", "H_PHASE_IMAG_SUB":"","BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"",
+                     "H_MAX":"", "LEGEND":"","PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": ""}
         currentDate = datetime.datetime.now()
         date = str(currentDate.strftime("%Y%m%d"))
         time = str(currentDate.strftime('%H%M%S'))
@@ -440,13 +444,16 @@ class Reader(object):
         elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
-        infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
-        infoFile.write('Inputs\n');
-        infoFile.write('*************************\n');
-        infoFile.write('\n');
+        self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
+        self._infoFile.write('Inputs\n');
+        self._infoFile.write('*************************\n');
+        self._infoFile.write('\n');
         for key in self._data:
-            infoFile.write(key + " = "+self._data.get(key)+'\n')
-        infoFile.close()
+            self._infoFile.write(key + " = "+self._data.get(key)+'\n')
+        self._infoFile.write('\n');
+        self._infoFile.write('Non-Linear Subtraction Info\n');
+        self._infoFile.write('*************************\n');
+        self._infoFile.write('\n');
         
         try:
             self._data["H_G_FACTOR_DATAFRAME"] = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("H_G_FACTOR_FILE")))
@@ -463,6 +470,7 @@ class Reader(object):
         self._data["DICT_DATAFRAME_ACTUAL"] = {}
         self._data["DICT_DATAFRAME_TEMPERATURE"] = {"TEMP_V_RUN":{}, "TEMP_V_TIME":{}}
         self._data["WITH_EMPTY"] = getBool(self.get("WITH_EMPTY"))
+        self._data["NON_LINEAR_SUB"] = getBool(self.get("NON_LINEAR_SUB"))
         if (self._data["WITH_EMPTY"]):
             try:
                df = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))

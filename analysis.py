@@ -26,9 +26,9 @@ pi = math.pi
 
 def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.DataFrame, high_cutoff_freq: int,
                  known_freq: int, MoverHrealforsub: float, MoverHimagforsub: float, MoverHforcalib: float,
-                 pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Mspecrealforsub: List[float],
-                 Mspecimagforsub: List[float], Hphaserealforsub: float, Hphaseimagforsub: float, 
-                 est_num_periods: int, begintime: int, temperature: float=np.nan, isNonLinearSub: bool = False) -> Tuple[pd.DataFrame, Dict[str, float]]:
+                 pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Hphaserealforsub: float, Hphaseimagforsub: float,
+                 est_num_periods: int, begintime: int, temperature: float=np.nan, isNonLinearSub: bool = False,
+                 Mspecrealforsub: List[float] = None, Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
     """
     
 
@@ -106,6 +106,8 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     times = ambrelldata.iloc[:,0].values.tolist()
     H = ambrelldata.iloc[:,1].values.tolist()
     M = (np.array(ambrelldata.iloc[:,2].values.tolist())*POLARITY).tolist()
+   
+    vHMax = max(H)
     
     total_points = len(M)
     timestep = times[1]-times[0]
@@ -191,6 +193,7 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     Mspectrum_gcorr = [0.0+0.0j]*len(Mspectrum)
     Hspectrum_gcorr = [0.0+0.0j]*len(Hspectrum) #changed Mspectrum into Hspectrum
     
+    
     for i in range(len(Mspectrum)):
         if (i>0) and (np.abs(freq[i]) < high_cutoff_freq) and odd_harmonic_M(len(freq), i, est_num_periods) == 1:
             Mspectrum_gcorr[i] = Mspectrum[i]
@@ -199,7 +202,7 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
             Subtraction of background spectrum. If nonLinearSub is False,
             that means to only subtract the fundamental.
             """
-            if isNonLinearSub:
+            if isNonLinearSub and i < Mspecrealforsub.size:
                 transfer_func_Hphase = complex(Hphasereal, -phase_sign*Hphaseimag)
                 transfer_func_Hphase_sub = complex(Hphaserealforsub, -phase_sign*Hphaseimagforsub)
                 Mspectrum_gcorr[i] = Mspectrum_gcorr[i]*transfer_func_Hphase
@@ -311,8 +314,8 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     #     Remember to update docstring comment of main module (main.py) when a new
     #     property parameter is added to labelSeries and valueSeries
         
-    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
-    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, osc_time, temperature, Hmax, Mmax, Hc, dMdH, dMdH_over_Mmax, integral]
+    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
+    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, osc_time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral]
     hashMap = {}
     
     for i in range(len(labelSeries)):
