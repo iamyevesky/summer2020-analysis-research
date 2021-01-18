@@ -450,11 +450,7 @@ class Reader(object):
         self._infoFile.write('\n');
         for key in self._data:
             self._infoFile.write(key + " = "+self._data.get(key)+'\n')
-        self._infoFile.write('\n');
-        self._infoFile.write('Non-Linear Subtraction Info\n');
-        self._infoFile.write('*************************\n');
-        self._infoFile.write('\n');
-        
+        self._infoFile.close()
         try:
             self._data["H_G_FACTOR_DATAFRAME"] = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("H_G_FACTOR_FILE")))
         except:

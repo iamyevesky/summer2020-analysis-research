@@ -285,7 +285,7 @@ class Main(object):
         for key in self.reader.get("DICT_DATAFRAME_ACTUAL"):
             if not key.startswith("voltageDataScopeRun"):
                 return
-            self.dict[key + "_ACTUAL"] = analysis.fundmagphase(
+            self.dict[key + "_ACTUAL_LINEAR"] = analysis.fundmagphase(
                 self.reader.get("DICT_DATAFRAME_ACTUAL").get(key),
                 self.reader.get("M_G_FACTOR_DATAFRAME"),
                 self.reader.get("H_G_FACTOR_DATAFRAME"),
@@ -302,8 +302,6 @@ class Main(object):
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
                 temperature=self.reader.getRunTemp(key)
             )
-        self.reader._infoFile.write("No non-linear subtraction conducted for case without empty data.\n")
-        self.reader._infoFile.close()
         print("Analysis of actual data completed")
         
     def _withEmpty(self) -> None:
@@ -334,6 +332,7 @@ class Main(object):
         )
         print("Analysis of empty data completed")
         print("Running analysis of actual data")
+        linearSignifier = "LINEAR"
         for key in self.reader.get("DICT_DATAFRAME_ACTUAL"):
             if not key.startswith("voltageDataScopeRun"):
                 return
@@ -342,14 +341,12 @@ class Main(object):
             if nonLinearSub:
                 vHMax = self.reader.get("DICT_DATAFRAME_ACTUAL").get(key)["Voltage(CH1)"].max()
                 if vHMax <= self.dict.get("EMPTY")[1]["V_H_MAX"] + self.reader.get("V_H_OFFSET", Reader.asFloat) and vHMax >= self.dict.get("EMPTY")[1]["V_H_MAX"] - self.reader.get("V_H_OFFSET", Reader.asFloat):
-                    self.reader._infoFile.write(str(key) + ".csv underwent non-linear subtraction\n")
+                    linearSignifier = "NON_LINEAR"
                 else:
                     nonLinearSub = False
-                    self.reader._infoFile.write(str(key) + ".csv underwent linear subtraction\n")
-            else:
-                self.reader._infoFile.write(str(key) + ".csv underwent linear subtraction\n")
+                
             
-            self.dict[key + "_ACTUAL"] = analysis.fundmagphase(
+            self.dict[key + "_ACTUAL_" + linearSignifier] = analysis.fundmagphase(
                 self.reader.get("DICT_DATAFRAME_ACTUAL").get(key),
                 self.reader.get("M_G_FACTOR_DATAFRAME"),
                 self.reader.get("H_G_FACTOR_DATAFRAME"),
@@ -369,7 +366,7 @@ class Main(object):
                 Mspecrealforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_REAL"],
                 Mspecimagforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_IMAG"]
             )
-        self.reader._infoFile.close()
+        
         print("Analysis of actual data completed")
             
 def addDirectory(iPath: str, newPath: str) -> str:
