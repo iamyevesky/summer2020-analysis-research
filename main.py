@@ -77,7 +77,7 @@ class Main(object):
             when WITH_EMPTY parameter is FALSE and sent as a parameter
             along with empty voltage reading dataset to the fundmagphase
             function when WITH_EMPTY is TRUE.
-        * pM_pH_DIFF_PHASE_ADJ:
+        * PM_PH_DIFF_PHASE_ADJ:
             Numeric parameter needed for analysis function.
             Parameter is sent as a parameter to the analysis function
             fundmagphase along with each non-empty voltage reading dataset
@@ -294,7 +294,7 @@ class Main(object):
                 self.reader.get("M_OVER_H_REAL_SUB", Reader.asFloat),
                 self.reader.get("M_OVER_H_IMAG_SUB", Reader.asFloat),
                 self.reader.get("M_OVER_H_CALIB", Reader.asFloat),
-                self.reader.get("pM_pH_DIFF_PHASE_ADJ", Reader.asFloat),
+                self.reader.get("PM_PH_DIFF_PHASE_ADJ", Reader.asFloat),
                 self.reader.get("M_OVER_H0_SUB", Reader.asFloat),
                 self.reader.get("H_PHASE_REAL_SUB", Reader.asFloat),
                 self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
@@ -323,7 +323,7 @@ class Main(object):
             self.reader.get("M_OVER_H_REAL_SUB", Reader.asFloat),
             self.reader.get("M_OVER_H_IMAG_SUB", Reader.asFloat),
             self.reader.get("M_OVER_H_CALIB", Reader.asFloat),
-            self.reader.get("pM_pH_DIFF_PHASE_ADJ", Reader.asFloat),
+            self.reader.get("PM_PH_DIFF_PHASE_ADJ", Reader.asFloat),
             self.reader.get("M_OVER_H0_SUB", Reader.asFloat),
             self.reader.get("H_PHASE_REAL_SUB", Reader.asFloat),
             self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
@@ -355,7 +355,7 @@ class Main(object):
                 self.dict.get("EMPTY")[1]["M_OVER_H_REAL"],
                 self.dict.get("EMPTY")[1]["M_OVER_H_IMAG"],
                 self.reader.get("M_OVER_H_CALIB", Reader.asFloat),
-                self.reader.get("pM_pH_DIFF_PHASE_ADJ", Reader.asFloat),
+                self.reader.get("PM_PH_DIFF_PHASE_ADJ", Reader.asFloat),
                 self.reader.get("M_OVER_H0_SUB", Reader.asFloat),
                 self.dict.get("EMPTY")[1]["H_PHASE_REAL"],
                 self.dict.get("EMPTY")[1]["H_PHASE_IMAG"],
