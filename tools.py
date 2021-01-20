@@ -31,6 +31,7 @@ import re
 from typing import Any, Dict, Tuple, List
 import math
 import matplotlib.pyplot as plt
+import warnings
 
 class ReaderError(Exception):
     """
@@ -173,20 +174,55 @@ class Writer(object):
         """
         anyKey = [*self._dict][0]
         
-        plotList = self._reader.get("PLOT").split("||")
+        plotList = self._reader.get("PLOT").upper().split("||")
         plotLabel = self._reader.get("PLOT_LABEL").split("||")
+        
+        if len(plotList) != len(plotLabel):
+            print("Warining: Check connfiguration file if single '|' were used instead of double '||' or if number of values for PLOT and PLOT_LABEL parameters match")
+        
         for i in range(len(plotList)):
             item = plotList[i].strip()
-            string = plotLabel[i].strip()
-            x, y = item.split(":")
-            xlabel, ylabel = string.split(":")
+            try:    
+                string = plotLabel[i].strip()
+            except IndexError:
+                raise ReaderError(item, "PLOT_LABEL option has not been defined for this PLOT value")
+            try:
+                x, y = item.split(":")
+            except ValueError:
+                if len(item) == 0:
+                    raise ReaderError(self._reader.get("PLOT"), "PLOT value option has an empty string list of values. Fix: Remove unnecessary || at the beginning or end of lists")    
+                else:
+                    raise ReaderError(item, "PLOT value is not in the right format => X:Y where X, Y are accepted values as listed in Main module")
+            try:
+                xlabel, ylabel = string.split(":")
+            except ValueError:
+                if len(string) == 0:
+                    raise ReaderError(self._reader.get("PLOT_LABEL"), "PLOT_LABEL value option has an empty string list of values. Fix: Remove unnecessary || at the beginning or end of lists")    
+                else:
+                    raise ReaderError(string, "PLOT_LABEL value is not in the right format => X_LABEL:Y_LABEL")
             xlabel = xlabel.strip()
             ylabel = ylabel.strip()
             x = x.strip()
             y = y.strip()
-            self._plotFunc(self._reader.get("LEGEND"), x, y, xlabel, ylabel, anyKey, i)
+            legends = self._reader.get("LEGEND").upper().split("||")
+            for j in range(len(legends)):
+                legend = legends[j].strip()
+                if len(legend) != 0:    
+                    self._plotFunc(legend, x, y, xlabel, ylabel, anyKey)
+                else:
+                    warnings.warn("Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
             
-        propertyPlotList = self._reader.get("PROPERTY_PLOT").split("||")
+        for i in range(len(plotList), len(plotLabel)):
+            string = plotLabel[i].strip()
+            if len(string) == 0:
+                print("Warning: Empty string passed as PLOT_LABEL option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+            else:
+                print("Warning: " + string + " -> PLOT_LABEL option value ignored due to no corresponding PLOT option value")
+        
+        if len(plotList) != len(plotLabel):
+            print("Warining: Check connfiguration file if single '|' were used instead of double '||' or if number of values for PROPERTY_PLOT and PROPERTY_PLOT_LABEL parameters match.")    
+        
+        propertyPlotList = self._reader.get("PROPERTY_PLOT").upper().split("||")
         propertyPlotLabel = self._reader.get("PROPERTY_PLOT_LABEL").split("||")
         for i in range(len(propertyPlotList)):
             item = propertyPlotList[i].strip()
@@ -200,6 +236,8 @@ class Writer(object):
             valueListX = []
             valueListY = []
             for key in self._dict:
+                if key == "EMPTY":
+                    continue
                 try:
                     valueListX.append(self._dict.get(key)[1][x])
                 except:
@@ -210,6 +248,12 @@ class Writer(object):
                     raise WriterError(x, "Y-parameter not defined properly for PROPERTY_PLOT parameter in configuration file for plot kind: "+x+':'+y)
             self._plotPropFunc(valueListX, valueListY, x, y, xlabel, ylabel)
             
+        for i in range(len(propertyPlotList), len(propertyPlotLabel)):
+            string = propertyPlotLabel[i].strip()
+            if len(string) == 0:
+                print("Warning: Empty string passed as PROPERTY_PLOT_LABEL option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+            else:
+                print("Warning: " + string + " -> PROPERTY_PLOT_LABEL option value ignored due to no corresponding PROPERTY_PLOT option value")
     
     def _roundNum(self, value, sigfig: int) -> float:
         """Rounds any numeric value to specified significant figure
@@ -265,8 +309,10 @@ class Writer(object):
         jpgPath = addDirectory(path, "COMBINED" + '_' + x + "_v_" + y + '_' + self._reader.get("DESCRIPTION") + ".jpg")
         plt.savefig(pdfPath, bbox_inches='tight')
         plt.savefig(jpgPath, bbox_inches='tight')
+        plt.show()
+        plt.close()
         
-    def _plotFunc(self, legend: str, x: str, y: str, xlabel: str, ylabel: str, anyKey: str, index: int):
+    def _plotFunc(self, legend: str, x: str, y: str, xlabel: str, ylabel: str, anyKey: str):
         """Plots graph of series parameters of each analyzed voltage run dataset.
 
         Parameters
@@ -283,8 +329,6 @@ class Writer(object):
             Label of y-parameter on graph.
         anyKey : str
             Key value used to access analysis output of voltage run for error checking
-        index : int
-            Used as an index for differentiating the many plots created
 
         Raises
         ------
@@ -300,8 +344,7 @@ class Writer(object):
         """
         path = addDirectory(addDirectory(addDirectory(self._reader.get("OUT_DIR"), self._reader.get("DATE")), self._reader.get("TIME")), "MHPlots")
         
-        plt.figure(index)
-        ax = plt.axes()
+        fig, ax = plt.subplots()
         numOfColors = 0
         dataDict = {}
         
@@ -313,6 +356,8 @@ class Writer(object):
             raise WriterError(y, "Y-parameter not defined properly for PLOT parameter in configuration filefor plot kind: "+x+':'+y)
         
         for key in self._dict:
+            if key == "EMPTY":
+                continue
             if self._dict.get(key)[1]["H_MAX"] >= self._reader.get("H_MIN", Reader.asFloat) and self._dict.get(key)[1]["H_MAX"] <= self._reader.get("H_MAX", Reader.asFloat):
                 numOfColors += 1
                 if dataDict.get(self._roundNum(self._dict.get(key)[1][legend], 2)) is None:
@@ -322,28 +367,30 @@ class Writer(object):
         
         labelList = sorted(list(dataDict.keys()))
         ax.set_prop_cycle(color = [plt.cm.rainbow(i) for i in np.linspace(0, 1, numOfColors)])
+        
         for key in labelList:
             dataList = dataDict.get(key)
             for data in dataList:
-                plt.plot(data[0], data[1], label=key)
+                ax.plot(data[0], data[1], label=key)
         
-        plt.title(self._reader.get("DESCRIPTION") + " LEGEND: "+legend)
-        plt.grid(True)
-        plt.xlabel(xlabel)
-        plt.ylabel(ylabel)
+        ax.set_title(self._reader.get("DESCRIPTION") + " LEGEND: "+legend)
+        ax.grid(True)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
         handles, labels = ax.get_legend_handles_labels()
-        ax = plt.figure(0).gca()
         for i, p in enumerate(ax.get_lines()):
             if p.get_label() in labels[:i]:
                 idx = labels.index(p.get_label())
                 p.set_c(ax.get_lines()[idx].get_c())
                 p.set_label('_' + p.get_label())
-        pdfPath = addDirectory(path, "COMBINED" + '_' + x + "_v_" + y + '_' + self._reader.get("DESCRIPTION") + ".pdf")
-        jpgPath = addDirectory(path, "COMBINED" + '_' + x + "_v_" + y + '_' + self._reader.get("DESCRIPTION") + ".jpg")
-        plt.legend(bbox_to_anchor=(0., 1.50, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
-        plt.savefig(pdfPath, bbox_inches='tight')
-        plt.savefig(jpgPath, bbox_inches='tight')
         
+        pdfPath = addDirectory(path, "COMBINED" + '_' + x + "_v_" + y + '_' + self._reader.get("DESCRIPTION") + "_" + legend + "_ASLEGEND" + ".pdf")
+        jpgPath = addDirectory(path, "COMBINED" + '_' + x + "_v_" + y + '_' + self._reader.get("DESCRIPTION") + "_" + legend + "_ASLEGEND" + ".jpg")
+        ax.legend(bbox_to_anchor=(0., 1.50, 1., .102), loc=3, ncol=2, mode="expand", borderaxespad=0.)
+        fig.savefig(pdfPath, bbox_inches='tight')
+        fig.savefig(jpgPath, bbox_inches='tight')
+        plt.show()
+        plt.close()
         
 class Reader(object):
     """
@@ -403,10 +450,10 @@ class Reader(object):
 
         """
         self._data = {"OUT_DIR":"", "BASE_DIR":"", "M_G_FACTOR_FILE":"", "H_G_FACTOR_FILE":"", "DATA_EMPTY":"", "DATA_ACTUAL":"", 
-                     "DESCRIPTION":"", "CUTOFF_FREQ":"", "KNOWN_FREQ":"", "M_OVER_H_REAL_SUB":"", "M_OVER_H_IMAG_SUB":"", 
-                     "M_OVER_H_CALIB":"", "pM_pH_DIFF_PHASE_ADJ":"", "M_OVER_H0_SUB":"", "NUM_PERIOD":"", 
-                     "BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"", "H_MAX":"", "LEGEND":"",
-                     "PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": ""}
+                     "DESCRIPTION":"", "CUTOFF_FREQ":"", "KNOWN_FREQ":"", "M_OVER_H_REAL_SUB":"", "M_OVER_H_IMAG_SUB":"", "V_H_OFFSET":"",
+                     "M_OVER_H_CALIB":"", "PM_PH_DIFF_PHASE_ADJ":"", "M_OVER_H0_SUB":"", "NUM_PERIOD":"", "NON_LINEAR_SUB":"",
+                     "H_PHASE_REAL_SUB":"", "H_PHASE_IMAG_SUB":"","BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"",
+                     "H_MAX":"", "LEGEND":"","PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": ""}
         currentDate = datetime.datetime.now()
         date = str(currentDate.strftime("%Y%m%d"))
         time = str(currentDate.strftime('%H%M%S'))
@@ -414,10 +461,20 @@ class Reader(object):
         self._data["TIME"] = time
         file = open(fileDir, 'r')
         for line in file:
-            line = line.strip()
+            newLine = None
+            for index, letter in enumerate(line):
+                if letter == "#":
+                    newLine = line[:index]
+                    break
+            
+            if newLine is None:
+                line = line.strip()
+            else:
+                line = newLine.strip()
+                
             try:
                 key, value = line.split(delimiter)
-                key = key.strip()
+                key = key.strip().upper()
                 value = value.strip()
                 if key in self._data:
                     self._data[key] = value
@@ -440,14 +497,13 @@ class Reader(object):
         elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
-        infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
-        infoFile.write('Inputs\n');
-        infoFile.write('*************************\n');
-        infoFile.write('\n');
+        self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
+        self._infoFile.write('Inputs\n');
+        self._infoFile.write('*************************\n');
+        self._infoFile.write('\n');
         for key in self._data:
-            infoFile.write(key + " = "+self._data.get(key)+'\n')
-        infoFile.close()
-        
+            self._infoFile.write(key + " = "+self._data.get(key)+'\n')
+        self._infoFile.close()
         try:
             self._data["H_G_FACTOR_DATAFRAME"] = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("H_G_FACTOR_FILE")))
         except:
@@ -463,6 +519,7 @@ class Reader(object):
         self._data["DICT_DATAFRAME_ACTUAL"] = {}
         self._data["DICT_DATAFRAME_TEMPERATURE"] = {"TEMP_V_RUN":{}, "TEMP_V_TIME":{}}
         self._data["WITH_EMPTY"] = getBool(self.get("WITH_EMPTY"))
+        self._data["NON_LINEAR_SUB"] = getBool(self.get("NON_LINEAR_SUB"))
         if (self._data["WITH_EMPTY"]):
             try:
                df = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))
@@ -617,7 +674,11 @@ class Reader(object):
             Temperature during voltage run during data collection.
         """
         regex = re.compile(r'\d{14}')
-        dateTime = regex.findall(filename)[0]
+        
+        try:
+            dateTime = regex.findall(filename)[0]
+        except IndexError:
+            raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
         
         regex = re.compile(r'CollectionKind\d+')
         try:
@@ -676,7 +737,11 @@ class Reader(object):
             Temperature during voltage run during data collection.
         """
         regex = re.compile(r'\d{14}')
-        dateTime = regex.findall(filename)[0]
+        try:
+            dateTime = regex.findall(filename)[0]
+        except IndexError:
+            raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
+        
         regex = re.compile(r'CollectionKind\d+')
         
         try:
@@ -739,7 +804,12 @@ class Reader(object):
 
         """
         regex = re.compile(r'\d{14}')
-        dateTime = regex.findall(filename)[0]
+        
+        try:
+            dateTime = regex.findall(filename)[0]
+        except IndexError:
+            raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
+        
         regex = re.compile(r'CollectionKind\d+')
         try:
             collectionKind = int(regex.findall(filename)[0].lstrip('CollectionKind'))

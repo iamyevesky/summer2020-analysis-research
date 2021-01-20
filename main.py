@@ -77,7 +77,7 @@ class Main(object):
             when WITH_EMPTY parameter is FALSE and sent as a parameter
             along with empty voltage reading dataset to the fundmagphase
             function when WITH_EMPTY is TRUE.
-        * pM_pH_DIFF_PHASE_ADJ:
+        * PM_PH_DIFF_PHASE_ADJ:
             Numeric parameter needed for analysis function.
             Parameter is sent as a parameter to the analysis function
             fundmagphase along with each non-empty voltage reading dataset
@@ -91,6 +91,26 @@ class Main(object):
             when WITH_EMPTY parameter is FALSE and sent as a parameter
             along with empty voltage reading dataset to the fundmagphase
             function when WITH_EMPTY is TRUE.
+        * H_PHASE_REAL_SUB:
+            Numeric parameter needed for analysis function.
+            Parameter is sent as a parameter to the analysis function
+            fundmagphase along with each non-empty voltage reading dataset
+            when WITH_EMPTY parameter is FALSE and sent as a parameter
+            along with empty voltage reading dataset to the fundmagphase
+            function when WITH_EMPTY is TRUE.
+        * H_PHASE_IMAG_SUB:
+            Numeric parameter needed for analysis function.
+            Parameter is sent as a parameter to the analysis function
+            fundmagphase along with each non-empty voltage reading dataset
+            when WITH_EMPTY parameter is FALSE and sent as a parameter
+            along with empty voltage reading dataset to the fundmagphase
+            function when WITH_EMPTY is TRUE.
+        * NON_LINEAR_SUB:
+            Boolean variable that states if a linear or non-lienar subtraction
+            is performed on non-empty datasets
+        * V_H_OFFSET:
+            The degree of freedom from the maximum voltage maximum of the empty
+            dataset to pass for a non-linear subtraction.
         * NUM_PERIOD:
             Numeric parameter needed for analysis function.
         * BEGIN_TIME:
@@ -265,7 +285,7 @@ class Main(object):
         for key in self.reader.get("DICT_DATAFRAME_ACTUAL"):
             if not key.startswith("voltageDataScopeRun"):
                 return
-            self.dict[key + "_ACTUAL"] = analysis.fundmagphase(
+            self.dict[key + "_ACTUAL_LINEAR"] = analysis.fundmagphase(
                 self.reader.get("DICT_DATAFRAME_ACTUAL").get(key),
                 self.reader.get("M_G_FACTOR_DATAFRAME"),
                 self.reader.get("H_G_FACTOR_DATAFRAME"),
@@ -274,14 +294,16 @@ class Main(object):
                 self.reader.get("M_OVER_H_REAL_SUB", Reader.asFloat),
                 self.reader.get("M_OVER_H_IMAG_SUB", Reader.asFloat),
                 self.reader.get("M_OVER_H_CALIB", Reader.asFloat),
-                self.reader.get("pM_pH_DIFF_PHASE_ADJ", Reader.asFloat),
+                self.reader.get("PM_PH_DIFF_PHASE_ADJ", Reader.asFloat),
                 self.reader.get("M_OVER_H0_SUB", Reader.asFloat),
+                self.reader.get("H_PHASE_REAL_SUB", Reader.asFloat),
+                self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
                 temperature=self.reader.getRunTemp(key)
             )
         print("Analysis of actual data completed")
-    
+        
     def _withEmpty(self) -> None:
         """
         Runs analysis program with empty field voltage dataset.
@@ -301,17 +323,30 @@ class Main(object):
             self.reader.get("M_OVER_H_REAL_SUB", Reader.asFloat),
             self.reader.get("M_OVER_H_IMAG_SUB", Reader.asFloat),
             self.reader.get("M_OVER_H_CALIB", Reader.asFloat),
-            self.reader.get("pM_pH_DIFF_PHASE_ADJ", Reader.asFloat),
+            self.reader.get("PM_PH_DIFF_PHASE_ADJ", Reader.asFloat),
             self.reader.get("M_OVER_H0_SUB", Reader.asFloat),
+            self.reader.get("H_PHASE_REAL_SUB", Reader.asFloat),
+            self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
             self.reader.get("NUM_PERIOD", Reader.asFloat),
             self.reader.get("BEGIN_TIME", Reader.asFloat)
         )
         print("Analysis of empty data completed")
         print("Running analysis of actual data")
+        linearSignifier = "LINEAR"
         for key in self.reader.get("DICT_DATAFRAME_ACTUAL"):
             if not key.startswith("voltageDataScopeRun"):
                 return
-            self.dict[key + "_ACTUAL"] = analysis.fundmagphase(
+            nonLinearSub = self.reader.get("NON_LINEAR_SUB")
+            vHMax = 0
+            if nonLinearSub:
+                vHMax = self.reader.get("DICT_DATAFRAME_ACTUAL").get(key)["Voltage(CH1)"].max()
+                if vHMax <= self.dict.get("EMPTY")[1]["V_H_MAX"] + self.reader.get("V_H_OFFSET", Reader.asFloat) and vHMax >= self.dict.get("EMPTY")[1]["V_H_MAX"] - self.reader.get("V_H_OFFSET", Reader.asFloat):
+                    linearSignifier = "NON_LINEAR"
+                else:
+                    nonLinearSub = False
+                
+            
+            self.dict[key + "_ACTUAL_" + linearSignifier] = analysis.fundmagphase(
                 self.reader.get("DICT_DATAFRAME_ACTUAL").get(key),
                 self.reader.get("M_G_FACTOR_DATAFRAME"),
                 self.reader.get("H_G_FACTOR_DATAFRAME"),
@@ -320,12 +355,18 @@ class Main(object):
                 self.dict.get("EMPTY")[1]["M_OVER_H_REAL"],
                 self.dict.get("EMPTY")[1]["M_OVER_H_IMAG"],
                 self.reader.get("M_OVER_H_CALIB", Reader.asFloat),
-                self.reader.get("pM_pH_DIFF_PHASE_ADJ", Reader.asFloat),
+                self.reader.get("PM_PH_DIFF_PHASE_ADJ", Reader.asFloat),
                 self.reader.get("M_OVER_H0_SUB", Reader.asFloat),
+                self.dict.get("EMPTY")[1]["H_PHASE_REAL"],
+                self.dict.get("EMPTY")[1]["H_PHASE_IMAG"],
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
-                temperature=self.reader.getRunTemp(key)
+                temperature=self.reader.getRunTemp(key),
+                isNonLinearSub = nonLinearSub,
+                Mspecrealforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_REAL"],
+                Mspecimagforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_IMAG"]
             )
+        
         print("Analysis of actual data completed")
             
 def addDirectory(iPath: str, newPath: str) -> str:

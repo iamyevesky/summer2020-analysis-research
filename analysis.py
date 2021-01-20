@@ -26,8 +26,9 @@ pi = math.pi
 
 def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.DataFrame, high_cutoff_freq: int,
                  known_freq: int, MoverHrealforsub: float, MoverHimagforsub: float, MoverHforcalib: float,
-                 pMminuspHforphaseadj: float, MoverH0forsubtraction: float, est_num_periods: int, begintime: int,                 
-                 temperature: float=np.nan) -> Tuple[pd.DataFrame, Dict[str, float]]:
+                 pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Hphaserealforsub: float, Hphaseimagforsub: float,
+                 est_num_periods: int, begintime: int, temperature: float=np.nan, isNonLinearSub: bool = False,
+                 Mspecrealforsub: List[float] = None, Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
     """
     
 
@@ -61,13 +62,22 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
         Empty field reading value subtituted from analysed datasets of 
         non-empty field voltage readings.
         Currently not implemented at the behest of Dr. Boekelheide.
+    Mspecrealforsub: List[float]
+    
+    Mspecimagforsub: List[float]
+    
+    Hphaserealforsub: float
+    
+    Hphaseimagforsub: float
+    
     est_num_periods : int
         
     begintime : int
         
     temperature : float, optional
         Temperature recorded during collection of voltage run time-series dataset. The default is np.nan.
-
+    isNonLinearSub: bool, optional
+        Instructs if fundmagphase should perform a linear or non-linear subtraction of background noise
     Returns
     -------
     logger : pd.DataFrame
@@ -96,6 +106,8 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     times = ambrelldata.iloc[:,0].values.tolist()
     H = ambrelldata.iloc[:,1].values.tolist()
     M = (np.array(ambrelldata.iloc[:,2].values.tolist())*POLARITY).tolist()
+   
+    vHMax = max(H)
     
     total_points = len(M)
     timestep = times[1]-times[0]
@@ -181,12 +193,26 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     Mspectrum_gcorr = [0.0+0.0j]*len(Mspectrum)
     Hspectrum_gcorr = [0.0+0.0j]*len(Hspectrum) #changed Mspectrum into Hspectrum
     
+    
     for i in range(len(Mspectrum)):
         if (i>0) and (np.abs(freq[i]) < high_cutoff_freq) and odd_harmonic_M(len(freq), i, est_num_periods) == 1:
             Mspectrum_gcorr[i] = Mspectrum[i]
             phase_sign_2 = np.sign(freq[i])
+            """"
+            Subtraction of background spectrum. If nonLinearSub is False,
+            that means to only subtract the fundamental.
+            """
+            if isNonLinearSub and i < Mspecrealforsub.size:
+                transfer_func_Hphase = complex(Hphasereal, -phase_sign*Hphaseimag)
+                transfer_func_Hphase_sub = complex(Hphaserealforsub, -phase_sign*Hphaseimagforsub)
+                Mspectrum_gcorr[i] = Mspectrum_gcorr[i]*transfer_func_Hphase
+                term_to_subtract =  complex(Mspecrealforsub[i], Mspecimagforsub[i])*transfer_func_Hphase_sub
+                Mspectrum_gcorr[i] -= term_to_subtract
+                Mspectrum_gcorr[i] = Mspectrum_gcorr[i]/transfer_func_Hphase
+            
             transfer_func_g = complex(g_interp_real(abs(freq[i])), phase_sign_2*g_interp_imag(abs(freq[i])))
             Mspectrum_gcorr[i] = Mspectrum_gcorr[i]*transfer_func_g
+            
         if i == est_num_periods or i == (len(Mspectrum) - est_num_periods):
             Hspectrum_gcorr[i] = Hspectrum[i]            
             phase_sign_2 = np.sign(freq[i])
@@ -288,8 +314,8 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     #     Remember to update docstring comment of main module (main.py) when a new
     #     property parameter is added to labelSeries and valueSeries
         
-    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
-    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, osc_time, temperature, Hmax, Mmax, Hc, dMdH, dMdH_over_Mmax, integral]
+    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
+    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, osc_time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral]
     hashMap = {}
     
     for i in range(len(labelSeries)):
