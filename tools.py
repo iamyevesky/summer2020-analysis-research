@@ -173,11 +173,9 @@ class Writer(object):
         """
         anyKey = [*self._dict][0]
         
-        plotList = self._reader.get("PLOT").upper().split("||")
-        plotLabel = self._reader.get("PLOT_LABEL").split("||")
+        plotList = self._reader.get("PLOT").upper().split("|")
+        plotLabel = self._reader.get("PLOT_LABEL").split("|")
         
-        if len(plotList) != len(plotLabel):
-            print("Warining: Check connfiguration file if single '|' were used instead of double '||' or if number of values for PLOT and PLOT_LABEL parameters match")
         
         for i in range(len(plotList)):
             item = plotList[i].strip()
@@ -189,40 +187,37 @@ class Writer(object):
                 x, y = item.split(":")
             except ValueError:
                 if len(item) == 0:
-                    raise ReaderError(self._reader.get("PLOT"), "PLOT value option has an empty string list of values. Fix: Remove unnecessary || at the beginning or end of lists")    
+                    raise ReaderError(self._reader.get("PLOT"), "PLOT value option has an empty string list of values. Fix: Remove unnecessary | at the beginning or end of lists")    
                 else:
                     raise ReaderError(item, "PLOT value is not in the right format => X:Y where X, Y are accepted values as listed in Main module")
             try:
                 xlabel, ylabel = string.split(":")
             except ValueError:
                 if len(string) == 0:
-                    raise ReaderError(self._reader.get("PLOT_LABEL"), "PLOT_LABEL value option has an empty string list of values. Fix: Remove unnecessary || at the beginning or end of lists")    
+                    raise ReaderError(self._reader.get("PLOT_LABEL"), "PLOT_LABEL value option has an empty string list of values. Fix: Remove unnecessary | at the beginning or end of lists")    
                 else:
                     raise ReaderError(string, "PLOT_LABEL value is not in the right format => X_LABEL:Y_LABEL")
             xlabel = xlabel.strip()
             ylabel = ylabel.strip()
             x = x.strip()
             y = y.strip()
-            legends = self._reader.get("LEGEND").upper().split("||")
+            legends = self._reader.get("LEGEND").upper().split("|")
             for j in range(len(legends)):
                 legend = legends[j].strip()
                 if len(legend) != 0:    
                     self._plotFunc(legend, x, y, xlabel, ylabel, anyKey)
                 else:
-                    print("Warning: Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                    print("Warning: Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary | at the beginning or end of lists")
             
         for i in range(len(plotList), len(plotLabel)):
             string = plotLabel[i].strip()
             if len(string) == 0:
-                print("Warning: Empty string passed as PLOT_LABEL option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                print("Warning: Empty string passed as PLOT_LABEL option is ignored. Fix: Remove unnecessary | at the beginning or end of lists")
             else:
                 print("Warning: " + string + " -> PLOT_LABEL option value ignored due to no corresponding PLOT option value")
         
-        if len(plotList) != len(plotLabel):
-            print("Warining: Check connfiguration file if single '|' were used instead of double '||' or if number of values for PROPERTY_PLOT and PROPERTY_PLOT_LABEL parameters match.")    
-        
-        propertyPlotList = self._reader.get("PROPERTY_PLOT").upper().split("||")
-        propertyPlotLabel = self._reader.get("PROPERTY_PLOT_LABEL").split("||")
+        propertyPlotList = self._reader.get("PROPERTY_PLOT").upper().split("|")
+        propertyPlotLabel = self._reader.get("PROPERTY_PLOT_LABEL").split("|")
         for i in range(len(propertyPlotList)):
             item = propertyPlotList[i].strip()
             string = propertyPlotLabel[i].strip()
@@ -250,7 +245,7 @@ class Writer(object):
         for i in range(len(propertyPlotList), len(propertyPlotLabel)):
             string = propertyPlotLabel[i].strip()
             if len(string) == 0:
-                print("Warning: Empty string passed as PROPERTY_PLOT_LABEL option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                print("Warning: Empty string passed as PROPERTY_PLOT_LABEL option is ignored. Fix: Remove unnecessary | at the beginning or end of lists")
             else:
                 print("Warning: " + string + " -> PROPERTY_PLOT_LABEL option value ignored due to no corresponding PROPERTY_PLOT option value")
     
