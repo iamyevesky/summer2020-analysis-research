@@ -208,7 +208,7 @@ class Writer(object):
             for j in range(len(legends)):
                 legend = legends[j].strip()
                 if len(legend) != 0:    
-                    self._plotFunc(legend, x, y, xlabel, ylabel, anyKey, i)
+                    self._plotFunc(legend, x, y, xlabel, ylabel, anyKey)
                 else:
                     warnings.warn("Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
             
@@ -312,7 +312,7 @@ class Writer(object):
         plt.show()
         plt.close()
         
-    def _plotFunc(self, legend: str, x: str, y: str, xlabel: str, ylabel: str, anyKey: str, index: int):
+    def _plotFunc(self, legend: str, x: str, y: str, xlabel: str, ylabel: str, anyKey: str):
         """Plots graph of series parameters of each analyzed voltage run dataset.
 
         Parameters
@@ -329,8 +329,6 @@ class Writer(object):
             Label of y-parameter on graph.
         anyKey : str
             Key value used to access analysis output of voltage run for error checking
-        index : int
-            Used as an index for differentiating the many plots created
 
         Raises
         ------
