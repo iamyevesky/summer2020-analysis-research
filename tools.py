@@ -31,7 +31,6 @@ import re
 from typing import Any, Dict, Tuple, List
 import math
 import matplotlib.pyplot as plt
-import warnings
 
 class ReaderError(Exception):
     """
@@ -210,7 +209,7 @@ class Writer(object):
                 if len(legend) != 0:    
                     self._plotFunc(legend, x, y, xlabel, ylabel, anyKey)
                 else:
-                    warnings.warn("Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                    print("Warning: Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
             
         for i in range(len(plotList), len(plotLabel)):
             string = plotLabel[i].strip()
@@ -373,7 +372,7 @@ class Writer(object):
             for data in dataList:
                 ax.plot(data[0], data[1], label=key)
         
-        ax.set_title(self._reader.get("DESCRIPTION") + " LEGEND: "+legend)
+        ax.set_title(self._reader.get("DESCRIPTION") + " LEGEND: " + legend)
         ax.grid(True)
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
@@ -482,7 +481,7 @@ class Reader(object):
                     raise ReaderError(key, "Property is not poorly defined or not necessary")
                     file.close()
             except ValueError:
-                if len(line) == 0 or line.startswith('#'):
+                if len(line) == 0:
                     continue
                 elif len(line) > 0:
                     raise ReaderError(line, "Line could not be read from file")
@@ -565,7 +564,7 @@ class Reader(object):
                 try:
                     dateTime = regex.findall(file)[0]
                 except:
-                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset.")
+                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset. Expected file name: 'tempData' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv'")
                 
                 try:
                     regex = re.compile(r'CollectionKind\d+')
@@ -582,7 +581,7 @@ class Reader(object):
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime][collectionKind] = df
                 else:
-                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset.")
+                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset. Reason: Does not have appropriate headers for analysis. Eg: 'Temp'")
         
         self._data["DICT_DATAFRAME_TIME"] = {}
         timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
@@ -696,7 +695,11 @@ class Reader(object):
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
             
         regex = re.compile(r'\W\d+\W')
-        value = int(regex.findall(filename)[0].strip('()'))
+        try:
+            value = int(regex.findall(filename)[0].strip('()'))
+        except IndexError:
+            raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
+        
         try:
             return tempDf["Temp"][value - 1]
         except KeyError:
@@ -768,7 +771,12 @@ class Reader(object):
             return timeDf.iloc[1,0].tolist()[0]
         elif kind == "oscilloscope":
             regex = re.compile(r'\W\d+\W')
-            value = int(regex.findall(filename)[0].strip('()'))
+            
+            try:
+                value = int(regex.findall(filename)[0].strip('()'))
+            except IndexError:
+                raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
+        
             if relative:
                 try:
                     return timeDf["Voltage Relative Start Time Collection " + str(value)][0]
