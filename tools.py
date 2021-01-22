@@ -567,16 +567,16 @@ class Reader(object):
                 except:
                     collectionKind = -1
                 
-                if "Oscilloscope Run" in df.columns and "Temp" in df.columns:
+                if "Oscilloscope Run" in df.columns and ("Temp" in df.columns or "Temperature" in df.columns):
                     if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime][collectionKind] = df
-                elif "Time" in df.columns and "Temp" in df.columns:
+                elif "Time" in df.columns and ("Temp" in df.columns or "Temperature" in df.columns):
                     if datetime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime][collectionKind] = df
                 else:
-                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset. Reason: Does not have appropriate headers for analysis. Eg: 'Temp'")
+                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset. Reason: Does not have appropriate headers for analysis. Eg: 'Temp' or 'Temperature'")
         
         self._data["DICT_DATAFRAME_TIME"] = {}
         timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
@@ -698,7 +698,10 @@ class Reader(object):
         try:
             return tempDf["Temp"][value - 1]
         except KeyError:
-            raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
+            try:
+                return tempDf["Temperature"][value - 1]
+            except KeyError:    
+                raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
             
     def getTime(self, filename: str, kind: str, run: int = 0, relative:bool = True) -> float:
         """
