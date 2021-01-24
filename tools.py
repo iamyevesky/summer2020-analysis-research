@@ -567,7 +567,7 @@ class Reader(object):
                 except:
                     collectionKind = -1
                 
-                if "Oscilloscope Run" in df.columns and ("Temp" in df.columns or "Temperature" in df.columns):
+                if ("Oscilloscope Run" in df.columns or "Run" in df.columns) and ("Temp" in df.columns or "Temperature" in df.columns):
                     if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime][collectionKind] = df
@@ -696,10 +696,10 @@ class Reader(object):
             raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
         
         try:
-            return tempDf["Temp"][value - 1]
+            return tempDf["Temp"][value]
         except KeyError:
             try:
-                return tempDf["Temperature"][value - 1]
+                return tempDf["Temperature"][value]
             except KeyError:    
                 raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
             

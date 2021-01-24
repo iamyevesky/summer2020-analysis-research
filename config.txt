@@ -2,9 +2,9 @@
 
 OUT_DIR = C:\Users\yeves\OneDrive - lafayette.edu\School Documents\Competition, Research Documents\SummerResearch2020\data
 BASE_DIR = C:\Users\yeves\OneDrive - lafayette.edu\School Documents\Competition, Research Documents\SummerResearch2020\sample
-DATA_EMPTY = 114955\Oscilloscope\voltageDataScopeRun20200319114955(1).csv
-DATA_ACTUAL = 120222\Oscilloscope
-DESCRIPTION = Test_Sample
+DATA_EMPTY = 104623\Oscilloscope\voltageDataScopeRun20210122104623(0)CollectionKind5.csv
+DATA_ACTUAL = 104737\Oscilloscope
+DESCRIPTION = Empty Dirty Coil Form
 M_G_FACTOR_FILE = MCoil\20200317110751gfactors.csv
 H_G_FACTOR_FILE = HCoil\20200317110751gfactors.csv
 CUTOFF_FREQ = 4000000
@@ -21,12 +21,12 @@ NUM_PERIOD = 2
 BEGIN_TIME = 0
 WITH_EMPTY = TRUE
 NON_LINEAR_SUB = TRUE
-TEMP_DIR = 120222\Opsens
-TIME_DIR = 120222\Time     
+TEMP_DIR = 104737\Opsens
+TIME_DIR = 104737\Time     
 
 
 # Plotting parameters #
-H_MIN = 50
+H_MIN = 20
 H_MAX = 60
 LEGEND = TEMPERATURE | m_max # Time option is not supported yet 
 PLOT = H_INT_RECONSTRUCTED_REAL_LIST:M_INT_RECONSTRUCTED_REAL_LIST  #| H_RECONSTRUCTED_REAL_LIST:M_RECONSTRUCTED_REAL_LIST
