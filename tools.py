@@ -6,7 +6,7 @@ to interact with the voltage and temperature analysis program
 using a text file as input and produce csv files and plot images as outputs
 based on specifications in the input text file.
 
-This script requires that `pandas`, `numpy`, and `mathplotlib` are installed
+This script requires that `pandas`, `numpy`, and `matplotlib` are installed
 within the Python environment. 
 
 This program is written with Python version 3.7.3 with Spyder IDE.
@@ -696,10 +696,10 @@ class Reader(object):
             raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
         
         try:
-            return tempDf["Temp"][value]
+            return tempDf["Temp"][value - 1]
         except KeyError:
             try:
-                return tempDf["Temperature"][value]
+                return tempDf["Temperature"][value - 1]
             except KeyError:    
                 raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
             
