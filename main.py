@@ -300,7 +300,8 @@ class Main(object):
                 self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
-                temperature=self.reader.getRunTemp(key)
+                temperature=self.reader.getRunTemp(key),
+                time=self.reader.getTime(key, "oscilloscope")
             )
         print("Analysis of actual data completed")
         
@@ -362,6 +363,7 @@ class Main(object):
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
                 temperature=self.reader.getRunTemp(key),
+                time=self.reader.getTime(key, "oscilloscope"),
                 isNonLinearSub = nonLinearSub,
                 Mspecrealforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_REAL"],
                 Mspecimagforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_IMAG"]

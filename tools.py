@@ -703,7 +703,7 @@ class Reader(object):
             except KeyError:    
                 raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
             
-    def getTime(self, filename: str, kind: str, run: int = 0, relative:bool = True) -> float:
+    def getTime(self, filename: str, kind: str, relative:bool = True) -> float:
         """
         Returns a specified time data of pertaining to a voltage run dataset.
 
@@ -717,10 +717,6 @@ class Reader(object):
                 * "program" -> Overall start time of program
                 * "oscilloscope" -> Start time of an oscilloscope run
                 * "opsens" -> Start time of Opsens thermometer collection
-        
-        run: int
-            This returns a specific run's start time when the value of `kind` is "oscilloscope"
-            Default value is 0.
         
         relative: bool
             This returns the time value relative to the program start time if True.
@@ -753,7 +749,7 @@ class Reader(object):
         timeDf = None
         if dateTime in self._data["DICT_DATAFRAME_TIME"]:
             if collectionKind in self._data["DICT_DATAFRAME_TIME"][dateTime]:
-                timeDf = self._data["DICT_DATAFRAME_TEMPERATURE"][dateTime].get(collectionKind)
+                timeDf = self._data["DICT_DATAFRAME_TIME"][dateTime].get(collectionKind)
             else:
                 raise ReaderError(collectionKind, "Time-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.")
         else:

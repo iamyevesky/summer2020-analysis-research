@@ -27,8 +27,10 @@ pi = math.pi
 def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.DataFrame, high_cutoff_freq: int,
                  known_freq: int, MoverHrealforsub: float, MoverHimagforsub: float, MoverHforcalib: float,
                  pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Hphaserealforsub: float, Hphaseimagforsub: float,
-                 est_num_periods: int, begintime: int, temperature: float=np.nan, isNonLinearSub: bool = False,
-                 Mspecrealforsub: List[float] = None, Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
+                 est_num_periods: int, begintime: int, temperature: float=np.nan, 
+                 time: float=np.nan, polarity: float=1.00, 
+                 isNonLinearSub: bool = False, Mspecrealforsub: List[float] = None, 
+                 Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
     """
     
 
@@ -76,6 +78,12 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
         
     temperature : float, optional
         Temperature recorded during collection of voltage run time-series dataset. The default is np.nan.
+    time : float, optional
+        Time recorded since program start for collection of voltage run time-series dataset.
+        The default is np.nan.
+    polarity: float, optional
+        Polarity affects how the hysteresis loops look. Depends on how wires are connected. 
+        Changed to make output graph look as that traditionally expected. Default value is 1.00
     isNonLinearSub: bool, optional
         Instructs if fundmagphase should perform a linear or non-linear subtraction of background noise
     Returns
@@ -101,11 +109,10 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     """
     M_CALIB_FACTOR = -9.551e6
     H_CALIB_FACTOR = -2.26e7
-    POLARITY = -1
     pi = math.pi
     times = ambrelldata.iloc[:,0].values.tolist()
     H = ambrelldata.iloc[:,1].values.tolist()
-    M = (np.array(ambrelldata.iloc[:,2].values.tolist())*POLARITY).tolist()
+    M = (np.array(ambrelldata.iloc[:,2].values.tolist())*polarity).tolist()
    
     vHMax = max(H)
     
@@ -289,9 +296,6 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     Mspectrumimag = (np.imag(Mspectrum)).tolist()
     freqlist = freq.tolist()
     
-    """ THIS IS A PLACEHOLDER - SHOULD GET osc_time FROM osctimefile.txt """
-    osc_time = 0.0
-    
     Hmax = np.amax(Hintreconstructedreallist)
     Mmax = np.amax(Mintreconstructedreallist)
     
@@ -315,7 +319,7 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     #     property parameter is added to labelSeries and valueSeries
         
     labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
-    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, osc_time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral]
+    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral]
     hashMap = {}
     
     for i in range(len(labelSeries)):
