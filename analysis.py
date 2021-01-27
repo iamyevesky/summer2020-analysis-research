@@ -27,8 +27,7 @@ pi = math.pi
 def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.DataFrame, high_cutoff_freq: int,
                  known_freq: int, MoverHrealforsub: float, MoverHimagforsub: float, MoverHforcalib: float,
                  pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Hphaserealforsub: float, Hphaseimagforsub: float,
-                 est_num_periods: int, begintime: int, temperature: float=np.nan, 
-                 time: float=np.nan, polarity: float=1.00, 
+                 est_num_periods: int, begintime: int, polarity: float, temperature: float=np.nan, time: float=np.nan,
                  isNonLinearSub: bool = False, Mspecrealforsub: List[float] = None, 
                  Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
     """
@@ -75,15 +74,16 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     est_num_periods : int
         
     begintime : int
-        
+    
+    polarity: float
+        Polarity affects how the hysteresis loops look. Depends on how wires are connected. 
+        Changed to make output graph look as that traditionally expected.
     temperature : float, optional
         Temperature recorded during collection of voltage run time-series dataset. The default is np.nan.
     time : float, optional
         Time recorded since program start for collection of voltage run time-series dataset.
         The default is np.nan.
-    polarity: float, optional
-        Polarity affects how the hysteresis loops look. Depends on how wires are connected. 
-        Changed to make output graph look as that traditionally expected. Default value is 1.00
+    
     isNonLinearSub: bool, optional
         Instructs if fundmagphase should perform a linear or non-linear subtraction of background noise
     Returns

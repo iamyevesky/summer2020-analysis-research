@@ -446,7 +446,7 @@ class Reader(object):
         self._data = {"OUT_DIR":"", "BASE_DIR":"", "M_G_FACTOR_FILE":"", "H_G_FACTOR_FILE":"", "DATA_EMPTY":"", "DATA_ACTUAL":"", 
                      "DESCRIPTION":"", "CUTOFF_FREQ":"", "KNOWN_FREQ":"", "M_OVER_H_REAL_SUB":"", "M_OVER_H_IMAG_SUB":"", "V_H_OFFSET":"",
                      "M_OVER_H_CALIB":"", "PM_PH_DIFF_PHASE_ADJ":"", "M_OVER_H0_SUB":"", "NUM_PERIOD":"", "NON_LINEAR_SUB":"",
-                     "H_PHASE_REAL_SUB":"", "H_PHASE_IMAG_SUB":"","BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"",
+                     "H_PHASE_REAL_SUB":"", "H_PHASE_IMAG_SUB":"","BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"", "POLARITY":"",
                      "H_MAX":"", "LEGEND":"","PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": ""}
         currentDate = datetime.datetime.now()
         date = str(currentDate.strftime("%Y%m%d"))
@@ -521,7 +521,7 @@ class Reader(object):
                 raise ReaderError(self.get("DATA_EMPTY"),
                                   "DATA_EMPTY file not defined properly or does not exist. File read from directory: " + os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))
             
-            if "Voltage(CH1)" in df.columns:
+            if substringInList("Voltage(CH1)", df.columns):
                 self._data["DATAFRAME_EMPTY"] = df
             else:
                 raise ReaderError(self.get("DATA_EMPTY"), "DATA_EMPTY file is not of expected voltage dataset kind")
@@ -537,7 +537,7 @@ class Reader(object):
             if ".csv" in file:
                 readTempData = True
                 df = pd.read_csv(os.path.join(path, file))
-                if not "Voltage(CH1)" in df.columns:
+                if not substringInList("Voltage(CH1)", df.columns):
                     raise ReaderError(file, "Voltage dataset of such filename in DATA_ACTUAL is not of expected voltage dataset kind")
                 else:
                     self._data["DICT_DATAFRAME_ACTUAL"][file.rstrip(".csv")] = df
@@ -567,11 +567,11 @@ class Reader(object):
                 except:
                     collectionKind = -1
                 
-                if ("Oscilloscope Run" in df.columns or "Run" in df.columns) and ("Temp" in df.columns or "Temperature" in df.columns):
+                if (substringInList("Oscilloscope Run", df.columns) or substringInList("Run", df.columns)) and (substringInList("Temp", df.columns) or substringInList("Temperature", df.columns)):
                     if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime][collectionKind] = df
-                elif "Time" in df.columns and ("Temp" in df.columns or "Temperature" in df.columns):
+                elif substringInList("Time", df.columns) and (substringInList("Temp", df.columns) or substringInList("Temperature", df.columns)):
                     if datetime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime][collectionKind] = df
@@ -600,7 +600,7 @@ class Reader(object):
                 except:
                     collectionKind = -1
                 
-                if "Program Start Time" in df.columns and "Opsens Start Time" in df.columns:
+                if substringInList("Program Start Time", df.columns) and substringInList("Opsens Start Time", df.columns):
                     if dateTime not in self._data["DICT_DATAFRAME_TIME"]:
                         self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
@@ -868,3 +868,25 @@ def getBool(boolStr: str) -> bool:
 
     """
     return boolStr.lower() in ["true", "y", "yes"]
+
+def substringInList(substring: str, listOfString: List[str]) -> bool:
+    """
+    Returns True if string input is a substring of at least one word in list of strings.
+
+    Parameters
+    ----------
+    substring : str
+        substring to be searched.
+    listOfString: List[str]
+        list of strings from which the substring would be compared
+
+    Returns
+    -------
+    bool
+        Returns True if string input is a substring of at least one word in list of strings.
+
+    """
+    for word in listOfString:
+        if substring in word:
+            return True
+    return False
