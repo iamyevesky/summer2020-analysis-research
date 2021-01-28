@@ -118,12 +118,18 @@ class Main(object):
         * WITH_EMPTY:
             Parameter which states if an empty field voltage recording should
             be considered during analysis or not. Value is either TRUE or FALSE.
+        * POLARITY:
+            Parameter which controls the polarity of the voltage data read 
+            into the program
         * TEMP_DIR:
             File-path containing all temperature datasets of non-empty field
             voltage datasets to be analyzed.
         * TIME_DIR:
             File-path containing all temperature datasets of non-empty field
             voltage datasets to be analyzed.
+        * READ_TIME:
+            Parameter which states if time data recording should
+            be considered during analysis or not. Value is either TRUE or FALSE.
     
     The configuration file's parameters for plotting are listed below:
         * H_MIN:
