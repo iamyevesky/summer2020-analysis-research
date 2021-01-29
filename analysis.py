@@ -28,7 +28,7 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
                  known_freq: int, MoverHrealforsub: float, MoverHimagforsub: float, MoverHforcalib: float,
                  pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Hphaserealforsub: float, Hphaseimagforsub: float,
                  est_num_periods: int, begintime: int, polarity: float, temperature: float=np.nan, time: float=np.nan,
-                 isNonLinearSub: bool = False, Mspecrealforsub: List[float] = None, 
+                 isNonLinearSub: bool = False, Mspecrealforsub: List[float] = None, runNum: int =np.nan,
                  Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
     """
     
@@ -317,9 +317,10 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     # Note to code maintainer:
     #     Remember to update docstring comment of main module (main.py) when a new
     #     property parameter is added to labelSeries and valueSeries
+    #     Update legend and property plot values in documentation
         
-    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
-    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral]
+    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "PM_MINUS_PH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL", "RUN_NUM"]
+    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral, runNum]
     hashMap = {}
     
     for i in range(len(labelSeries)):

@@ -153,6 +153,7 @@ class Main(object):
                 * "DMDH"
                 * "DMDH_OVER_M_MAX"
                 * "INTEGRAL"
+                * "RUN_NUM"
             These accepted values are considered property values of each
             analyzed voltage dataset.
         * PLOT:
@@ -204,6 +205,7 @@ class Main(object):
                 * "DMDH"
                 * "DMDH_OVER_M_MAX"
                 * "INTEGRAL"
+                * "RUN_NUM"
                 
         * PROPERTY_PLOT_LABEL:
             Labels of property values to be plotted on combined graph.
@@ -307,8 +309,9 @@ class Main(object):
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
                 self.reader.get("POLARITY", Reader.asFloat),
+                runNum = self.reader.getRunNum(key),
                 temperature=self.reader.getRunTemp(key),
-                time=self.reader.getTime(key, "oscilloscope"),
+                time=self.reader.getTime(key, "oscilloscope")
             )
         print("Analysis of actual data completed")
         
@@ -372,6 +375,7 @@ class Main(object):
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
                 self.reader.get("POLARITY", Reader.asFloat),
                 temperature=self.reader.getRunTemp(key),
+                runNum = self.reader.getRunNum(key),
                 time=self.reader.getTime(key, "oscilloscope"),
                 isNonLinearSub = nonLinearSub,
                 Mspecrealforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_REAL"],

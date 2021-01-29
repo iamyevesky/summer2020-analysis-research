@@ -829,7 +829,7 @@ class Reader(object):
 
         """
         if not self._data["READ_TIME"]:
-            return np.nan
+            return pd.DataFrame()
         
         regex = re.compile(r'\d{14}')
         
@@ -850,6 +850,36 @@ class Reader(object):
                raise ReaderError(collectionKind, "Temp-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.") 
         else:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
+    
+    def getRunNum(self, filename: str) -> int:
+        """
+        Returns the run number of a voltage run.
+
+        Parameters
+        ----------
+        filename : str
+            Filename of voltage run.
+
+        Raises
+        ------
+        ReaderError
+            Raised when:
+                * When name of voltage run is not in the right format.
+
+        Returns
+        -------
+        int
+            Run number of voltage run.
+
+        """
+        regex = re.compile(r'\W\d+\W')
+            
+        try:
+            return int(regex.findall(filename)[0].strip('()'))
+        except IndexError:
+            raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
+    
+        
 
         
 def addDirectory(iPath: str, newPath: str) -> str:
