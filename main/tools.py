@@ -470,7 +470,11 @@ class Reader(object):
         time = str(currentDate.strftime('%H%M%S'))
         self._data["DATE"] = date
         self._data["TIME"] = time
-        file = open(fileDir, 'r')
+        try:    
+            file = open(fileDir, 'r')
+        except OSError:
+            raise ReaderError(fileDir, "Configuration file does not exist or wrongly specified")
+            
         for line in file:
             newLine = None
             for index, letter in enumerate(line):
@@ -490,15 +494,17 @@ class Reader(object):
                 if key in self._data:
                     self._data[key] = value
                 else:
-                    raise ReaderError(key, "Property is not poorly defined or not necessary")
                     file.close()
+                    raise ReaderError(key, "Property is not poorly defined or not necessary")
             except ValueError:
                 if len(line) == 0:
                     continue
                 elif len(line) > 0:
+                    file.close()
                     raise ReaderError(line, "Line could not be read from file")
                 else:
-                   raise ReaderError(line, "Unknown unexpected error") 
+                    file.close()
+                    raise ReaderError(line, "Unknown unexpected error") 
                 
                 
         file.close()
@@ -509,11 +515,9 @@ class Reader(object):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
         self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
-        self._infoFile.write('Inputs\n');
-        self._infoFile.write('*************************\n');
         self._infoFile.write('\n');
         for key in self._data:
-            self._infoFile.write(key + " = "+self._data.get(key)+'\n')
+            self._infoFile.write(key + " = " + self._data.get(key) + '\n')
         self._infoFile.close()
         try:
             self._data["H_G_FACTOR_DATAFRAME"] = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("H_G_FACTOR_FILE")))
