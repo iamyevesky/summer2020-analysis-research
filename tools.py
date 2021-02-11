@@ -6,7 +6,7 @@ to interact with the voltage and temperature analysis program
 using a text file as input and produce csv files and plot images as outputs
 based on specifications in the input text file.
 
-This script requires that `pandas`, `numpy`, and `mathplotlib` are installed
+This script requires that `pandas`, `numpy`, and `matplotlib` are installed
 within the Python environment. 
 
 This program is written with Python version 3.7.3 with Spyder IDE.
@@ -173,11 +173,9 @@ class Writer(object):
         """
         anyKey = [*self._dict][0]
         
-        plotList = self._reader.get("PLOT").upper().split("||")
-        plotLabel = self._reader.get("PLOT_LABEL").split("||")
+        plotList = self._reader.get("PLOT").upper().split("|")
+        plotLabel = self._reader.get("PLOT_LABEL").split("|")
         
-        if len(plotList) != len(plotLabel):
-            print("Warining: Check connfiguration file if single '|' were used instead of double '||' or if number of values for PLOT and PLOT_LABEL parameters match")
         
         for i in range(len(plotList)):
             item = plotList[i].strip()
@@ -189,45 +187,59 @@ class Writer(object):
                 x, y = item.split(":")
             except ValueError:
                 if len(item) == 0:
-                    raise ReaderError(self._reader.get("PLOT"), "PLOT value option has an empty string list of values. Fix: Remove unnecessary || at the beginning or end of lists")    
+                    raise ReaderError(self._reader.get("PLOT"), "PLOT value option has an empty string list of values. Fix: Remove unnecessary | at the beginning or end of list or watch for double || symbols")    
                 else:
                     raise ReaderError(item, "PLOT value is not in the right format => X:Y where X, Y are accepted values as listed in Main module")
             try:
                 xlabel, ylabel = string.split(":")
             except ValueError:
                 if len(string) == 0:
-                    raise ReaderError(self._reader.get("PLOT_LABEL"), "PLOT_LABEL value option has an empty string list of values. Fix: Remove unnecessary || at the beginning or end of lists")    
+                    raise ReaderError(self._reader.get("PLOT_LABEL"), "PLOT_LABEL value option has an empty string list of values. Fix: Remove unnecessary | at the beginning or end of lists")    
                 else:
                     raise ReaderError(string, "PLOT_LABEL value is not in the right format => X_LABEL:Y_LABEL")
             xlabel = xlabel.strip()
             ylabel = ylabel.strip()
             x = x.strip()
             y = y.strip()
-            legends = self._reader.get("LEGEND").upper().split("||")
+            legends = self._reader.get("LEGEND").upper().split("|")
             for j in range(len(legends)):
                 legend = legends[j].strip()
                 if len(legend) != 0:    
                     self._plotFunc(legend, x, y, xlabel, ylabel, anyKey)
                 else:
-                    print("Warning: Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                    print("Warning: Empty string passed as LEGEND option is ignored. Fix: Remove unnecessary | at the beginning or end of lists or watch for double || symbols")
             
         for i in range(len(plotList), len(plotLabel)):
             string = plotLabel[i].strip()
             if len(string) == 0:
-                print("Warning: Empty string passed as PLOT_LABEL option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                print("Warning: Empty string passed as PLOT_LABEL option is ignored. Fix: Remove unnecessary | at the beginning or end of lists or watch for double || symbols")
             else:
                 print("Warning: " + string + " -> PLOT_LABEL option value ignored due to no corresponding PLOT option value")
         
-        if len(plotList) != len(plotLabel):
-            print("Warining: Check connfiguration file if single '|' were used instead of double '||' or if number of values for PROPERTY_PLOT and PROPERTY_PLOT_LABEL parameters match.")    
-        
-        propertyPlotList = self._reader.get("PROPERTY_PLOT").upper().split("||")
-        propertyPlotLabel = self._reader.get("PROPERTY_PLOT_LABEL").split("||")
+        propertyPlotList = self._reader.get("PROPERTY_PLOT").upper().split("|")
+        propertyPlotLabel = self._reader.get("PROPERTY_PLOT_LABEL").split("|")
         for i in range(len(propertyPlotList)):
             item = propertyPlotList[i].strip()
-            string = propertyPlotLabel[i].strip()
-            x, y = item.split(":")
-            xlabel, ylabel = string.split(":")
+            try:    
+                string = propertyPlotLabel[i].strip()
+            except IndexError:
+                raise ReaderError(item, "PROPERTY_PLOT_LABEL option has not been defined for this PROPERTY_PLOT value")
+            try:
+                x, y = item.split(":")
+            except ValueError:
+                if len(item) == 0:
+                    raise ReaderError(self._reader.get("PROPERTY_PLOT"), "PROPERTY_PLOT value option has an empty string list of values. Fix: Remove unnecessary | at the beginning or end of list or watch for double || symbols")    
+                else:
+                    raise ReaderError(item, "PROPERTY_PLOT value is not in the right format => X:Y where X, Y are accepted values as listed in Main module")
+            
+            try:
+                xlabel, ylabel = string.split(":")
+            except ValueError:
+                if len(string) == 0:
+                    raise ReaderError(self._reader.get("PROPERTY_PLOT_LABEL"), "PROPERTY_PLOT value option has an empty string list of values. Fix: Remove unnecessary | at the beginning or end of list or watch for double || symbols")    
+                else:
+                    raise ReaderError(string, "PROPERTY_PLOT_LABEL value is not in the right format => X:Y where X, Y are accepted values as listed in Main module")
+            
             xlabel = xlabel.strip()
             ylabel = ylabel.strip()
             x = x.strip()
@@ -250,7 +262,7 @@ class Writer(object):
         for i in range(len(propertyPlotList), len(propertyPlotLabel)):
             string = propertyPlotLabel[i].strip()
             if len(string) == 0:
-                print("Warning: Empty string passed as PROPERTY_PLOT_LABEL option is ignored. Fix: Remove unnecessary || at the beginning or end of lists")
+                print("Warning: Empty string passed as PROPERTY_PLOT_LABEL option is ignored. Fix: Remove unnecessary | at the beginning or end of lists or watch for double || symbols")
             else:
                 print("Warning: " + string + " -> PROPERTY_PLOT_LABEL option value ignored due to no corresponding PROPERTY_PLOT option value")
     
@@ -269,7 +281,7 @@ class Writer(object):
         float
             Round number of input value to specified significant figures.
         """
-        if abs(value) == 0 or abs(value) == math.inf:
+        if abs(value) == 0 or abs(value) == math.inf or np.nan:
             return value
         return round(value, -int(math.floor(math.log10(abs(value)))) + sigfig - 1)
     
@@ -451,8 +463,8 @@ class Reader(object):
         self._data = {"OUT_DIR":"", "BASE_DIR":"", "M_G_FACTOR_FILE":"", "H_G_FACTOR_FILE":"", "DATA_EMPTY":"", "DATA_ACTUAL":"", 
                      "DESCRIPTION":"", "CUTOFF_FREQ":"", "KNOWN_FREQ":"", "M_OVER_H_REAL_SUB":"", "M_OVER_H_IMAG_SUB":"", "V_H_OFFSET":"",
                      "M_OVER_H_CALIB":"", "PM_PH_DIFF_PHASE_ADJ":"", "M_OVER_H0_SUB":"", "NUM_PERIOD":"", "NON_LINEAR_SUB":"",
-                     "H_PHASE_REAL_SUB":"", "H_PHASE_IMAG_SUB":"","BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"",
-                     "H_MAX":"", "LEGEND":"","PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": ""}
+                     "H_PHASE_REAL_SUB":"", "H_PHASE_IMAG_SUB":"","BEGIN_TIME":"", "WITH_EMPTY":"", "TEMP_DIR":"", "H_MIN":"", "POLARITY":"",
+                     "H_MAX":"", "LEGEND":"","PLOT":"", "PLOT_LABEL":"", "PROPERTY_PLOT":"", "PROPERTY_PLOT_LABEL": "", "TIME_DIR": "", "READ_TIME":""}
         currentDate = datetime.datetime.now()
         date = str(currentDate.strftime("%Y%m%d"))
         time = str(currentDate.strftime('%H%M%S'))
@@ -519,6 +531,7 @@ class Reader(object):
         self._data["DICT_DATAFRAME_TEMPERATURE"] = {"TEMP_V_RUN":{}, "TEMP_V_TIME":{}}
         self._data["WITH_EMPTY"] = getBool(self.get("WITH_EMPTY"))
         self._data["NON_LINEAR_SUB"] = getBool(self.get("NON_LINEAR_SUB"))
+        self._data["READ_TIME"] = getBool(self.get("READ_TIME"))
         if (self._data["WITH_EMPTY"]):
             try:
                df = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))
@@ -526,7 +539,7 @@ class Reader(object):
                 raise ReaderError(self.get("DATA_EMPTY"),
                                   "DATA_EMPTY file not defined properly or does not exist. File read from directory: " + os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))
             
-            if "Voltage(CH1)" in df.columns:
+            if substringInList("Voltage(CH1)", df.columns):
                 self._data["DATAFRAME_EMPTY"] = df
             else:
                 raise ReaderError(self.get("DATA_EMPTY"), "DATA_EMPTY file is not of expected voltage dataset kind")
@@ -542,7 +555,7 @@ class Reader(object):
             if ".csv" in file:
                 readTempData = True
                 df = pd.read_csv(os.path.join(path, file))
-                if not "Voltage(CH1)" in df.columns:
+                if not substringInList("Voltage(CH1)", df.columns):
                     raise ReaderError(file, "Voltage dataset of such filename in DATA_ACTUAL is not of expected voltage dataset kind")
                 else:
                     self._data["DICT_DATAFRAME_ACTUAL"][file.rstrip(".csv")] = df
@@ -572,45 +585,47 @@ class Reader(object):
                 except:
                     collectionKind = -1
                 
-                if "Oscilloscope Run" in df.columns and "Temp" in df.columns:
+                if (substringInList("Oscilloscope Run", df.columns) or substringInList("Run", df.columns)) and (substringInList("Temp", df.columns) or substringInList("Temperature", df.columns)):
                     if dateTime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_RUN"][dateTime][collectionKind] = df
-                elif "Time" in df.columns and "Temp" in df.columns:
+                elif substringInList("Time", df.columns) and (substringInList("Temp", df.columns) or substringInList("Temperature", df.columns)):
                     if datetime not in self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"]:
                         self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime] = {}
                     self._data["DICT_DATAFRAME_TEMPERATURE"]["TEMP_V_TIME"][dateTime][collectionKind] = df
                 else:
-                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset. Reason: Does not have appropriate headers for analysis. Eg: 'Temp'")
+                    raise ReaderError(file, "Temperature file of such filename in TEMP_DIR is not an expected csv dataset. Reason: Does not have appropriate headers for analysis. Eg: 'Temp' or 'Temperature'")
         
-        self._data["DICT_DATAFRAME_TIME"] = {}
-        timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
         
-        if not os.path.exists(timePath):
-            raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
-        
-        for file in os.listdir(timePath):
-            if ".csv" in file:
-                df = pd.read_csv(os.path.join(timePath, file))
-                regex = re.compile(r'\d{14}')
-                
-                try:
-                    dateTime = regex.findall(file)[0]
-                except:
-                    raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
-                
-                try:
-                    regex = re.compile(r'CollectionKind\d+')
-                    collectionKind = int(regex.findall(file)[0].lstrip('CollectionKind'))
-                except:
-                    collectionKind = -1
-                
-                if "Program Start Time" in df.columns and "Opsens Start Time" in df.columns:
-                    if dateTime not in self._data["DICT_DATAFRAME_TIME"]:
-                        self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
-                    self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
-                else:
-                    raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
+        if self._data["READ_TIME"]:
+            self._data["DICT_DATAFRAME_TIME"] = {}
+            timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
+            
+            if not os.path.exists(timePath):
+                raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
+            
+            for file in os.listdir(timePath):
+                if ".csv" in file:
+                    df = pd.read_csv(os.path.join(timePath, file))
+                    regex = re.compile(r'\d{14}')
+                    
+                    try:
+                        dateTime = regex.findall(file)[0]
+                    except:
+                        raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
+                    
+                    try:
+                        regex = re.compile(r'CollectionKind\d+')
+                        collectionKind = int(regex.findall(file)[0].lstrip('CollectionKind'))
+                    except:
+                        collectionKind = -1
+                    
+                    if substringInList("Data", df.columns) and substringInList("Time", df.columns):
+                        if dateTime not in self._data["DICT_DATAFRAME_TIME"]:
+                            self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
+                        self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
+                    else:
+                        raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
     
     def get(self, prop: str, kind: bool=False) -> Any:
         """
@@ -701,11 +716,12 @@ class Reader(object):
             raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
         
         try:
-            return tempDf["Temp"][value - 1]
-        except KeyError:
+            return tempDf.iloc[value - 1 , 1]
+        except IndexError:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
+                
             
-    def getTime(self, filename: str, kind: str, run: int = 0, relative:bool = True) -> float:
+    def getTime(self, filename: str, kind: str, relative:bool = True) -> float:
         """
         Returns a specified time data of pertaining to a voltage run dataset.
 
@@ -719,10 +735,6 @@ class Reader(object):
                 * "program" -> Overall start time of program
                 * "oscilloscope" -> Start time of an oscilloscope run
                 * "opsens" -> Start time of Opsens thermometer collection
-        
-        run: int
-            This returns a specific run's start time when the value of `kind` is "oscilloscope"
-            Default value is 0.
         
         relative: bool
             This returns the time value relative to the program start time if True.
@@ -739,6 +751,9 @@ class Reader(object):
         float
             Temperature during voltage run during data collection.
         """
+        if not self._data["READ_TIME"]:
+            return np.nan
+            
         regex = re.compile(r'\d{14}')
         try:
             dateTime = regex.findall(filename)[0]
@@ -755,7 +770,7 @@ class Reader(object):
         timeDf = None
         if dateTime in self._data["DICT_DATAFRAME_TIME"]:
             if collectionKind in self._data["DICT_DATAFRAME_TIME"][dateTime]:
-                timeDf = self._data["DICT_DATAFRAME_TEMPERATURE"][dateTime].get(collectionKind)
+                timeDf = self._data["DICT_DATAFRAME_TIME"][dateTime].get(collectionKind)
             else:
                 raise ReaderError(collectionKind, "Time-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.")
         else:
@@ -764,11 +779,11 @@ class Reader(object):
         if kind == "program":
             if relative:
                 return 0
-            return timeDf.iloc[0,0].tolist()[0]
+            return timeDf.iloc[0,1]
         elif kind == "opsens":
             if relative:
-                return timeDf.iloc[2,0].tolist()[0]
-            return timeDf.iloc[1,0].tolist()[0]
+                return timeDf.iloc[2,1]
+            return timeDf.iloc[1,1]
         elif kind == "oscilloscope":
             regex = re.compile(r'\W\d+\W')
             
@@ -776,16 +791,15 @@ class Reader(object):
                 value = int(regex.findall(filename)[0].strip('()'))
             except IndexError:
                 raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
-        
             if relative:
                 try:
-                    return timeDf["Voltage Relative Start Time Collection " + str(value)][0]
-                except KeyError:
+                    return timeDf.iloc[(2 * value) + 2, 1]
+                except IndexError:
                     raise ReaderError(dateTime, "Time data of this date-time value does not contain start time value for Run "+str(value))
             else:
                try:
-                    return timeDf["Voltage Start Time Collection " + str(value)][0]
-               except KeyError:
+                    return timeDf.iloc[(2 * value) + 1, 1]
+               except IndexError:
                     raise ReaderError(dateTime, "Time data of this date-time value does not contain start time value for Run "+str(value))
         else:
             raise ReaderError(kind, "Reader.getTime() `kind` option is not an expected value.")
@@ -811,6 +825,9 @@ class Reader(object):
             Temp-V-Time Series dataset of voltage run.
 
         """
+        if not self._data["READ_TIME"]:
+            return pd.DataFrame()
+        
         regex = re.compile(r'\d{14}')
         
         try:
@@ -830,6 +847,36 @@ class Reader(object):
                raise ReaderError(collectionKind, "Temp-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.") 
         else:
             raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value not added to TEMP_DIR.")
+    
+    def getRunNum(self, filename: str) -> int:
+        """
+        Returns the run number of a voltage run.
+
+        Parameters
+        ----------
+        filename : str
+            Filename of voltage run.
+
+        Raises
+        ------
+        ReaderError
+            Raised when:
+                * When name of voltage run is not in the right format.
+
+        Returns
+        -------
+        int
+            Run number of voltage run.
+
+        """
+        regex = re.compile(r'\W\d+\W')
+            
+        try:
+            return int(regex.findall(filename)[0].strip('()'))
+        except IndexError:
+            raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
+    
+        
 
         
 def addDirectory(iPath: str, newPath: str) -> str:
@@ -874,3 +921,25 @@ def getBool(boolStr: str) -> bool:
 
     """
     return boolStr.lower() in ["true", "y", "yes"]
+
+def substringInList(substring: str, listOfString: List[str]) -> bool:
+    """
+    Returns True if string input is a substring of at least one word in list of strings.
+
+    Parameters
+    ----------
+    substring : str
+        substring to be searched.
+    listOfString: List[str]
+        list of strings from which the substring would be compared
+
+    Returns
+    -------
+    bool
+        Returns True if string input is a substring of at least one word in list of strings.
+
+    """
+    for word in listOfString:
+        if substring in word:
+            return True
+    return False

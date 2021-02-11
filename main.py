@@ -118,12 +118,18 @@ class Main(object):
         * WITH_EMPTY:
             Parameter which states if an empty field voltage recording should
             be considered during analysis or not. Value is either TRUE or FALSE.
+        * POLARITY:
+            Parameter which controls the polarity of the voltage data read 
+            into the program
         * TEMP_DIR:
             File-path containing all temperature datasets of non-empty field
             voltage datasets to be analyzed.
         * TIME_DIR:
             File-path containing all temperature datasets of non-empty field
             voltage datasets to be analyzed.
+        * READ_TIME:
+            Parameter which states if time data recording should
+            be considered during analysis or not. Value is either TRUE or FALSE.
     
     The configuration file's parameters for plotting are listed below:
         * H_MIN:
@@ -147,6 +153,7 @@ class Main(object):
                 * "DMDH"
                 * "DMDH_OVER_M_MAX"
                 * "INTEGRAL"
+                * "RUN_NUM"
             These accepted values are considered property values of each
             analyzed voltage dataset.
         * PLOT:
@@ -198,6 +205,7 @@ class Main(object):
                 * "DMDH"
                 * "DMDH_OVER_M_MAX"
                 * "INTEGRAL"
+                * "RUN_NUM"
                 
         * PROPERTY_PLOT_LABEL:
             Labels of property values to be plotted on combined graph.
@@ -300,7 +308,10 @@ class Main(object):
                 self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
-                temperature=self.reader.getRunTemp(key)
+                self.reader.get("POLARITY", Reader.asFloat),
+                runNum = self.reader.getRunNum(key),
+                temperature=self.reader.getRunTemp(key),
+                time=self.reader.getTime(key, "oscilloscope")
             )
         print("Analysis of actual data completed")
         
@@ -328,7 +339,8 @@ class Main(object):
             self.reader.get("H_PHASE_REAL_SUB", Reader.asFloat),
             self.reader.get("H_PHASE_IMAG_SUB", Reader.asFloat),
             self.reader.get("NUM_PERIOD", Reader.asFloat),
-            self.reader.get("BEGIN_TIME", Reader.asFloat)
+            self.reader.get("BEGIN_TIME", Reader.asFloat),
+            self.reader.get("POLARITY", Reader.asFloat)
         )
         print("Analysis of empty data completed")
         print("Running analysis of actual data")
@@ -361,7 +373,10 @@ class Main(object):
                 self.dict.get("EMPTY")[1]["H_PHASE_IMAG"],
                 self.reader.get("NUM_PERIOD", Reader.asFloat),
                 self.reader.get("BEGIN_TIME", Reader.asFloat),
+                self.reader.get("POLARITY", Reader.asFloat),
                 temperature=self.reader.getRunTemp(key),
+                runNum = self.reader.getRunNum(key),
+                time=self.reader.getTime(key, "oscilloscope"),
                 isNonLinearSub = nonLinearSub,
                 Mspecrealforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_REAL"],
                 Mspecimagforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_IMAG"]

@@ -27,8 +27,9 @@ pi = math.pi
 def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.DataFrame, high_cutoff_freq: int,
                  known_freq: int, MoverHrealforsub: float, MoverHimagforsub: float, MoverHforcalib: float,
                  pMminuspHforphaseadj: float, MoverH0forsubtraction: float, Hphaserealforsub: float, Hphaseimagforsub: float,
-                 est_num_periods: int, begintime: int, temperature: float=np.nan, isNonLinearSub: bool = False,
-                 Mspecrealforsub: List[float] = None, Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
+                 est_num_periods: int, begintime: int, polarity: float, temperature: float=np.nan, time: float=np.nan,
+                 isNonLinearSub: bool = False, Mspecrealforsub: List[float] = None, runNum: int =np.nan,
+                 Mspecimagforsub: List[float] = None) -> Tuple[pd.DataFrame, Dict[str, float]]:
     """
     
 
@@ -73,9 +74,16 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     est_num_periods : int
         
     begintime : int
-        
+    
+    polarity: float
+        Polarity affects how the hysteresis loops look. Depends on how wires are connected. 
+        Changed to make output graph look as that traditionally expected.
     temperature : float, optional
         Temperature recorded during collection of voltage run time-series dataset. The default is np.nan.
+    time : float, optional
+        Time recorded since program start for collection of voltage run time-series dataset.
+        The default is np.nan.
+    
     isNonLinearSub: bool, optional
         Instructs if fundmagphase should perform a linear or non-linear subtraction of background noise
     Returns
@@ -98,14 +106,21 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     """
     Calib factors from Zoe August 2019
     in units of kA/m per V-s
-    """
     M_CALIB_FACTOR = -9.551e6
     H_CALIB_FACTOR = -2.26e7
-    POLARITY = -1
+    """
+    
+    """
+    Calib factors from Zoe January 2021
+    in units of kA/m per V-s
+    """
+    M_CALIB_FACTOR = -9.551e6*.47
+    H_CALIB_FACTOR = -2.26e7
+    
     pi = math.pi
     times = ambrelldata.iloc[:,0].values.tolist()
     H = ambrelldata.iloc[:,1].values.tolist()
-    M = (np.array(ambrelldata.iloc[:,2].values.tolist())*POLARITY).tolist()
+    M = (np.array(ambrelldata.iloc[:,2].values.tolist())*polarity).tolist()
    
     vHMax = max(H)
     
@@ -289,14 +304,15 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     Mspectrumimag = (np.imag(Mspectrum)).tolist()
     freqlist = freq.tolist()
     
-    """ THIS IS A PLACEHOLDER - SHOULD GET osc_time FROM osctimefile.txt """
-    osc_time = 0.0
-    
     Hmax = np.amax(Hintreconstructedreallist)
     Mmax = np.amax(Mintreconstructedreallist)
     
     integral = 0.0
     
+    Hc1 = 0 
+    Hc2 = 0
+    dMdH1 = 0
+    dMdH2 = 0
     for j in range(len(Hintreconstructedreallist)-1):
         if Mintreconstructedreallist[j+1] > 0 and Mintreconstructedreallist[j] < 0:
             Hc1 = Hintreconstructedreallist[j] - (Hintreconstructedreallist[j+1] - Hintreconstructedreallist[j])*Mintreconstructedreallist[j]/(Mintreconstructedreallist[j+1]-Mintreconstructedreallist[j])
@@ -313,9 +329,10 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     # Note to code maintainer:
     #     Remember to update docstring comment of main module (main.py) when a new
     #     property parameter is added to labelSeries and valueSeries
+    #     Update legend and property plot values in documentation
         
-    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "pM_MINUS_pH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL"]
-    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, osc_time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral]
+    labelSeries = ["M_OVER_H_REAL", "M_OVER_H_IMAG", "M_OVER_H_G", "PM_MINUS_PH_G", "M_OVER_H0", "H_PHASE_REAL", "H_PHASE_IMAG", "OSC_TIME", "TEMPERATURE", "H_MAX", "M_MAX", "V_H_MAX", "HC", "DMDH", "DMDH_OVER_M_MAX", "INTEGRAL", "RUN_NUM"]
+    valueSeries = [MoverHreal, MoverHimag, MoverHg, pMminuspHg, MoverH0, Hphasereal, Hphaseimag, time, temperature, Hmax, Mmax, vHMax, Hc, dMdH, dMdH_over_Mmax, integral, runNum]
     hashMap = {}
     
     for i in range(len(labelSeries)):
