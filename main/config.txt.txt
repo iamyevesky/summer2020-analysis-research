@@ -1,0 +1,37 @@
+# Analysis parameters #	
+
+OUT_DIR = C:\Users\yeves\OneDrive - lafayette.edu\School Documents\Competition, Research Documents\SummerResearch2020\data	
+BASE_DIR = C:\Users\yeves\OneDrive - lafayette.edu\School Documents\Competition, Research Documents\SummerResearch2020\sample	
+DATA_EMPTY = 135958\Oscilloscope\voltageDataScopeRun20210131135958(1)CollectionKind0.csv	
+DATA_ACTUAL = 140159\Oscilloscope	
+DESCRIPTION = Empty Dirty Coil Form	
+M_G_FACTOR_FILE = MCoil\20200317110751gfactors.csv	
+H_G_FACTOR_FILE = HCoil\20200317110751gfactors.csv	
+CUTOFF_FREQ = 4000000	
+KNOWN_FREQ = 0	
+M_OVER_H_REAL_SUB = 0	
+M_OVER_H_IMAG_SUB = 0	
+M_OVER_H_CALIB = 0	
+pM_pH_DIFF_PHASE_ADJ = 0	
+M_OVER_H0_SUB = 0	
+H_PHASE_REAL_SUB = 0	
+H_PHASE_IMAG_SUB = 0	
+V_H_OFFSET = 30	
+NUM_PERIOD = 2	
+BEGIN_TIME = 0	
+POLARITY = 1.00	
+WITH_EMPTY = TRUE	
+NON_LINEAR_SUB = TRUE	
+TEMP_DIR = 140159\Opsens	
+TIME_DIR = 140159\Time	
+READ_TIME = TRUE	
+
+
+# Plotting parameters #	
+H_MIN = 20	
+H_MAX = 60	
+LEGEND = TEMPERATURE | m_max | osc_time | run_num	
+PLOT = H_INT_RECONSTRUCTED_REAL_LIST:M_INT_RECONSTRUCTED_REAL_LIST  #| H_RECONSTRUCTED_REAL_LIST:M_RECONSTRUCTED_REAL_LIST	
+PLOT_LABEL = H (kA/m):M (kA/m) #| H (kA/m):M (kA/m)	
+PROPERTY_PLOT = TEMPERATURE:HC | INTEGRAL:HC | temperature:osc_time	
+PROPERTY_PLOT_LABEL = Temperature(degC):Hc(T) | integral:Hc(T) | Temperature(degC):Time(sec)
