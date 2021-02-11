@@ -716,12 +716,10 @@ class Reader(object):
             raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
         
         try:
-            return tempDf["Temp"][value - 1]
-        except KeyError:
-            try:
-                return tempDf["Temperature"][value - 1]
-            except KeyError:    
-                raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
+            return tempDf.iloc[value - 1 , 1]
+        except IndexError:
+            raise ReaderError(dateTime, "Temp-V-Run Series data of this date-time value does not contain temperature value for Run "+str(value))
+                
             
     def getTime(self, filename: str, kind: str, relative:bool = True) -> float:
         """
@@ -781,11 +779,11 @@ class Reader(object):
         if kind == "program":
             if relative:
                 return 0
-            return timeDf.iloc[0,1].tolist()[0]
+            return timeDf.iloc[0,1]
         elif kind == "opsens":
             if relative:
-                return timeDf.iloc[2,1].tolist()[0]
-            return timeDf.iloc[1,1].tolist()[0]
+                return timeDf.iloc[2,1]
+            return timeDf.iloc[1,1]
         elif kind == "oscilloscope":
             regex = re.compile(r'\W\d+\W')
             
@@ -793,16 +791,15 @@ class Reader(object):
                 value = int(regex.findall(filename)[0].strip('()'))
             except IndexError:
                 raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
-        
             if relative:
                 try:
-                    return timeDf.iloc[2 + value, 1].tolist()[0]
-                except KeyError:
+                    return timeDf.iloc[(2 * value) + 2, 1]
+                except IndexError:
                     raise ReaderError(dateTime, "Time data of this date-time value does not contain start time value for Run "+str(value))
             else:
                try:
-                    return timeDf.iloc[2 + value - 1, 1].tolist()[0]
-               except KeyError:
+                    return timeDf.iloc[(2 * value) + 1, 1]
+               except IndexError:
                     raise ReaderError(dateTime, "Time data of this date-time value does not contain start time value for Run "+str(value))
         else:
             raise ReaderError(kind, "Reader.getTime() `kind` option is not an expected value.")

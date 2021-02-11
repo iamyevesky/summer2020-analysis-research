@@ -106,9 +106,17 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     """
     Calib factors from Zoe August 2019
     in units of kA/m per V-s
-    """
     M_CALIB_FACTOR = -9.551e6
     H_CALIB_FACTOR = -2.26e7
+    """
+    
+    """
+    Calib factors from Zoe January 2021
+    in units of kA/m per V-s
+    """
+    M_CALIB_FACTOR = -9.551e6*.47
+    H_CALIB_FACTOR = -2.26e7
+    
     pi = math.pi
     times = ambrelldata.iloc[:,0].values.tolist()
     H = ambrelldata.iloc[:,1].values.tolist()
@@ -301,6 +309,10 @@ def fundmagphase(ambrelldata: pd.DataFrame, Mgdata: pd.DataFrame, Hgdata: pd.Dat
     
     integral = 0.0
     
+    Hc1 = 0 
+    Hc2 = 0
+    dMdH1 = 0
+    dMdH2 = 0
     for j in range(len(Hintreconstructedreallist)-1):
         if Mintreconstructedreallist[j+1] > 0 and Mintreconstructedreallist[j] < 0:
             Hc1 = Hintreconstructedreallist[j] - (Hintreconstructedreallist[j+1] - Hintreconstructedreallist[j])*Mintreconstructedreallist[j]/(Mintreconstructedreallist[j+1]-Mintreconstructedreallist[j])
