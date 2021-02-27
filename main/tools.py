@@ -474,7 +474,10 @@ class Reader(object):
             file = open(fileDir, 'r')
         except OSError:
             raise ReaderError(fileDir, "Configuration file does not exist or wrongly specified")
-            
+        
+        if delimiter == "|":
+            raise ReaderError("|", "This symbol cannot serve as a delimiter for the Reader object")
+        
         for line in file:
             newLine = None
             for index, letter in enumerate(line):
@@ -514,11 +517,6 @@ class Reader(object):
         elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
-        self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
-        self._infoFile.write('\n');
-        for key in self._data:
-            self._infoFile.write(key + " = " + self._data.get(key) + '\n')
-        self._infoFile.close()
         try:
             self._data["H_G_FACTOR_DATAFRAME"] = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("H_G_FACTOR_FILE")))
         except:
@@ -657,7 +655,7 @@ class Reader(object):
         """
         value = None
         try:
-            value = self._data.get(prop)
+            value = self._data[prop]
         except KeyError:
             raise ReaderError(prop, "Property does not exist in configuration file")
             
@@ -880,7 +878,13 @@ class Reader(object):
         except IndexError:
             raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
     
-        
+    def writeConfigFile(self) -> None:
+        self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
+        self._infoFile.write('\n');
+        for key in self._data:
+            if not (key.startswith("DICT") or key.endswith("DATAFRAME") or key.startswith("DATAFRAME")):    
+                self._infoFile.write(key + " = " + str(self._data.get(key)) + '\n')
+        self._infoFile.close()
 
         
 def addDirectory(iPath: str, newPath: str) -> str:
