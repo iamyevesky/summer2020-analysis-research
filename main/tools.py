@@ -140,6 +140,8 @@ class Writer(object):
         reader : 'Reader'
             Reader object associated with analysis program.
         dictionary : Dict[str, Tuple[pd.DataFrame, dict]]
+        \
+            
             Dictionary obecjt containing outputs of fundmagphase function of `analysis` module.
 
         Returns
@@ -880,9 +882,8 @@ class Reader(object):
     
     def writeConfigFile(self) -> None:
         self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
-        self._infoFile.write('\n');
         for key in self._data:
-            if not (key.startswith("DICT") or key.endswith("DATAFRAME") or key.startswith("DATAFRAME")):    
+            if not (key.startswith("DICT") or key.endswith("DATAFRAME") or key.startswith("DATAFRAME") or key == "DATE" or key == "TIME"):    
                 self._infoFile.write(key + " = " + str(self._data.get(key)) + '\n')
         self._infoFile.close()
 
