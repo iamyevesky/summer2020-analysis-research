@@ -257,6 +257,7 @@ class Main(object):
         print("Starting Main program")
         print("Reading config file for program inputs")
         self.reader = Reader(configDir)
+        self.reader.writeConfigFile()
         print("Data successfully read from .txt configuration file")
         self.dict = {}
         
@@ -351,7 +352,7 @@ class Main(object):
             nonLinearSub = self.reader.get("NON_LINEAR_SUB")
             vHMax = 0
             if nonLinearSub:
-                vHMax = self.reader.get("DICT_DATAFRAME_ACTUAL").get(key)["Voltage(CH1)"].max()
+                vHMax = self.reader.get("DICT_DATAFRAME_ACTUAL").get(key).iloc[:,1].max()
                 if vHMax <= self.dict.get("EMPTY")[1]["V_H_MAX"] + self.reader.get("V_H_OFFSET", Reader.asFloat) and vHMax >= self.dict.get("EMPTY")[1]["V_H_MAX"] - self.reader.get("V_H_OFFSET", Reader.asFloat):
                     linearSignifier = "NON_LINEAR"
                 else:

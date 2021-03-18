@@ -140,6 +140,8 @@ class Writer(object):
         reader : 'Reader'
             Reader object associated with analysis program.
         dictionary : Dict[str, Tuple[pd.DataFrame, dict]]
+        \
+            
             Dictionary obecjt containing outputs of fundmagphase function of `analysis` module.
 
         Returns
@@ -470,7 +472,14 @@ class Reader(object):
         time = str(currentDate.strftime('%H%M%S'))
         self._data["DATE"] = date
         self._data["TIME"] = time
-        file = open(fileDir, 'r')
+        try:    
+            file = open(fileDir, 'r')
+        except OSError:
+            raise ReaderError(fileDir, "Configuration file does not exist or wrongly specified")
+        
+        if delimiter == "|":
+            raise ReaderError("|", "This symbol cannot serve as a delimiter for the Reader object")
+        
         for line in file:
             newLine = None
             for index, letter in enumerate(line):
@@ -490,15 +499,17 @@ class Reader(object):
                 if key in self._data:
                     self._data[key] = value
                 else:
-                    raise ReaderError(key, "Property is not poorly defined or not necessary")
                     file.close()
+                    raise ReaderError(key, "Property is not poorly defined or not necessary")
             except ValueError:
                 if len(line) == 0:
                     continue
                 elif len(line) > 0:
+                    file.close()
                     raise ReaderError(line, "Line could not be read from file")
                 else:
-                   raise ReaderError(line, "Unknown unexpected error") 
+                    file.close()
+                    raise ReaderError(line, "Unknown unexpected error") 
                 
                 
         file.close()
@@ -508,13 +519,6 @@ class Reader(object):
         elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
-        self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
-        self._infoFile.write('Inputs\n');
-        self._infoFile.write('*************************\n');
-        self._infoFile.write('\n');
-        for key in self._data:
-            self._infoFile.write(key + " = "+self._data.get(key)+'\n')
-        self._infoFile.close()
         try:
             self._data["H_G_FACTOR_DATAFRAME"] = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("H_G_FACTOR_FILE")))
         except:
@@ -653,7 +657,7 @@ class Reader(object):
         """
         value = None
         try:
-            value = self._data.get(prop)
+            value = self._data[prop]
         except KeyError:
             raise ReaderError(prop, "Property does not exist in configuration file")
             
@@ -876,7 +880,12 @@ class Reader(object):
         except IndexError:
             raise ReaderError(filename, "Voltage file name is not in the right format. Expected: 'voltageDataScopeRun'+ '(<RUN_NUM>)' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv' where 'CollectionKind' + <KIND_NUM> is optional for backwards compatibility")
     
-        
+    def writeConfigFile(self) -> None:
+        self._infoFile = open(addDirectory(addDirectory(addDirectory(self.get("OUT_DIR"), self.get("DATE")), self.get("TIME")), self.get("DATE") + self.get("TIME") +self.get("DESCRIPTION") + ".txt"), 'w')
+        for key in self._data:
+            if not (key.startswith("DICT") or key.endswith("DATAFRAME") or key.startswith("DATAFRAME") or key == "DATE" or key == "TIME"):    
+                self._infoFile.write(key + " = " + str(self._data.get(key)) + '\n')
+        self._infoFile.close()
 
         
 def addDirectory(iPath: str, newPath: str) -> str:
