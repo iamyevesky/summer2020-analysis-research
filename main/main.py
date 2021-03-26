@@ -19,7 +19,6 @@ It provides the following function:
 """
 
 import os
-from pathlib import Path
 import PySimpleGUI as sg
 import analysis
 from tools import Writer, Reader, ReaderError
