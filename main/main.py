@@ -20,8 +20,9 @@ It provides the following function:
 
 import os
 from pathlib import Path
+import PySimpleGUI as sg
 import analysis
-from tools import Writer, Reader
+from tools import Writer, Reader, ReaderError
 
 class Main(object):
     """
@@ -412,6 +413,17 @@ def addDirectory(iPath: str, newPath: str) -> str:
     return iPath+'\\'+newPath
     
 if __name__ == "__main__":
-    path = os.path.dirname(__file__)
-    #Relative configuration file path is the location of the main script. 
-    Main(os.path.join(Path(path), "config.txt")).run()
+    event, values = sg.Window('Configuration File Selection',
+                  [[sg.Text('Select Cogfiguration File: ', size=(25, 1)), 
+                    sg.InputText(key='-FILE-'), 
+                    sg.FileBrowse()],
+                  [sg.B('Run Program')]]).read(close=True)
+    
+    path = values['-FILE-']
+    if path is None:
+        raise ReaderError("Configuration File", "No file was selected in pop-up windows")
+    elif len(path) == 0:
+        raise ReaderError("Configuration File", "No file was selected in pop-up windows")
+    else:
+        Main(path).run()
+    
