@@ -50,7 +50,7 @@ class ToolsGlobalFunctionTest(unittest.TestCase):
     def test_addDirectory_pathExist(self):
         self.assertFalse(os.path.exists("new_folder"))
         os.mkdir("new_folder")
-        self.assertEqual(tools.addDirectory(os.path.join(Path(os.path.dirname(__file__)), "new_folder"), "test_folder"), os.path.join(Path(os.path.dirname(__file__)), "new_folder") + "\\test_folder", 
+        self.assertEqual(tools.addDirectory(os.path.join(Path(os.path.dirname(__file__)), "new_folder"), "test_folder"), os.path.join(os.path.dirname(__file__), "new_folder", "test_folder"), 
                          "addDirectory() does not work when directory exists")
         os.rmdir("new_folder")
         self.assertFalse(os.path.exists("new_folder"))
@@ -58,7 +58,7 @@ class ToolsGlobalFunctionTest(unittest.TestCase):
     def test_addDirectory_pathNotExist(self):
         os.mkdir("new_folder")
         self.assertTrue(os.path.exists("new_folder"))
-        self.assertEqual(tools.addDirectory(os.path.join(Path(os.path.dirname(__file__)), "new_folder"), "test_folder"), os.path.join(Path(os.path.dirname(__file__)), "new_folder") + "\\test_folder", 
+        self.assertEqual(tools.addDirectory(os.path.join(Path(os.path.dirname(__file__)), "new_folder"), "test_folder"), os.path.join(os.path.dirname(__file__), "new_folder", "test_folder"), 
                          "addDirectory() does not work when directory does not exists")
         os.rmdir("new_folder")
         self.assertFalse(os.path.exists("new_folder"))
@@ -165,6 +165,76 @@ class ReaderClassInitTestClass(unittest.TestCase):
         self.configFile.write("PROPERTY_PLOT_LABEL = Temperature(degC):Hc(T) | integral:Hc(T) | Temperature(degC):Time(sec)\n")
         self.configFile.close()
         
+        self.lastOUTDIRwrong = open("lastOUT_DIRFolderWrongConfigFile.txt", 'w')
+        self.lastOUTDIRwrong.write("OUT_DIR = C:\\Users\yeves\\OneDrive - lafayette.edu\\School Documents\\Competition, Research Documents\\SummerResearch2020\\datr\n")
+        self.lastOUTDIRwrong.write("BASE_DIR = C:\\Users\\yeves\\OneDrive - lafayette.edu\\School Documents\\Competition, Research Documents\\SummerResearch2020\\sample\n")
+        self.lastOUTDIRwrong.write("DATA_EMPTY = 135958\\Oscilloscope\\voltageDataScopeRun20210131135958(1)CollectionKind0.csv\n")
+        self.lastOUTDIRwrong.write("DATA_ACTUAL = 140159\\Oscilloscope\n")
+        self.lastOUTDIRwrong.write("DESCRIPTION = Empty Dirty Coil Form\n")
+        self.lastOUTDIRwrong.write("M_G_FACTOR_FILE = MCoil\\20200317110751gfactors.csv\n")
+        self.lastOUTDIRwrong.write("H_G_FACTOR_FILE = HCoil\\20200317110751gfactors.csv\n")
+        self.lastOUTDIRwrong.write("CUTOFF_FREQ = 4000000\n")
+        self.lastOUTDIRwrong.write("KNOWN_FREQ = 0\n")
+        self.lastOUTDIRwrong.write("M_OVER_H_REAL_SUB = 0\n")
+        self.lastOUTDIRwrong.write("M_OVER_H_IMAG_SUB = 0\n")
+        self.lastOUTDIRwrong.write("M_OVER_H_CALIB = 0\n")
+        self.lastOUTDIRwrong.write("PM_PH_DIFF_PHASE_ADJ = 0\n")
+        self.lastOUTDIRwrong.write("M_OVER_H0_SUB = 0\n")
+        self.lastOUTDIRwrong.write("H_PHASE_REAL_SUB = 0\n")
+        self.lastOUTDIRwrong.write("H_PHASE_IMAG_SUB = 0\n")
+        self.lastOUTDIRwrong.write("V_H_OFFSET = 30\n")
+        self.lastOUTDIRwrong.write("NUM_PERIOD = 2\n")
+        self.lastOUTDIRwrong.write("BEGIN_TIME = 0\n")
+        self.lastOUTDIRwrong.write("POLARITY = 1.00\n")
+        self.lastOUTDIRwrong.write("WITH_EMPTY = TRUE\n")
+        self.lastOUTDIRwrong.write("NON_LINEAR_SUB = TRUE\n")
+        self.lastOUTDIRwrong.write("TEMP_DIR = 140159\\Opsens\n")
+        self.lastOUTDIRwrong.write("TIME_DIR = 140159\\Time\n")
+        self.lastOUTDIRwrong.write("READ_TIME = TRUE\n")
+        self.lastOUTDIRwrong.write("H_MIN = 20\n")
+        self.lastOUTDIRwrong.write("H_MAX = 60\n")
+        self.lastOUTDIRwrong.write("LEGEND = TEMPERATURE | m_max | osc_time | run_num\n")
+        self.lastOUTDIRwrong.write("PLOT = H_INT_RECONSTRUCTED_REAL_LIST:M_INT_RECONSTRUCTED_REAL_LIST \n")
+        self.lastOUTDIRwrong.write("PLOT_LABEL = H (kA/m):M (kA/m)\n")
+        self.lastOUTDIRwrong.write("PROPERTY_PLOT = TEMPERATURE:HC | INTEGRAL:HC | temperature:osc_time\n")
+        self.lastOUTDIRwrong.write("PROPERTY_PLOT_LABEL = Temperature(degC):Hc(T) | integral:Hc(T) | Temperature(degC):Time(sec)\n")
+        self.lastOUTDIRwrong.close()
+        
+        self.outdirWrong = open("OUT_DIRWrongConfigFile.txt", 'w')
+        self.outdirWrong.write("OUT_DIR = C:\\Users\yeves\\OneDrive - lafayette.edu\\School Documents\\Competition, Research Documents\\SummerResearch2021\\data\n")
+        self.outdirWrong.write("BASE_DIR = C:\\Users\\yeves\\OneDrive - lafayette.edu\\School Documents\\Competition, Research Documents\\SummerResearch2020\\sample\n")
+        self.outdirWrong.write("DATA_EMPTY = 135958\\Oscilloscope\\voltageDataScopeRun20210131135958(1)CollectionKind0.csv\n")
+        self.outdirWrong.write("DATA_ACTUAL = 140159\\Oscilloscope\n")
+        self.outdirWrong.write("DESCRIPTION = Empty Dirty Coil Form\n")
+        self.outdirWrong.write("M_G_FACTOR_FILE = MCoil\\20200317110751gfactors.csv\n")
+        self.outdirWrong.write("H_G_FACTOR_FILE = HCoil\\20200317110751gfactors.csv\n")
+        self.outdirWrong.write("CUTOFF_FREQ = 4000000\n")
+        self.outdirWrong.write("KNOWN_FREQ = 0\n")
+        self.outdirWrong.write("M_OVER_H_REAL_SUB = 0\n")
+        self.outdirWrong.write("M_OVER_H_IMAG_SUB = 0\n")
+        self.outdirWrong.write("M_OVER_H_CALIB = 0\n")
+        self.outdirWrong.write("PM_PH_DIFF_PHASE_ADJ = 0\n")
+        self.outdirWrong.write("M_OVER_H0_SUB = 0\n")
+        self.outdirWrong.write("H_PHASE_REAL_SUB = 0\n")
+        self.outdirWrong.write("H_PHASE_IMAG_SUB = 0\n")
+        self.outdirWrong.write("V_H_OFFSET = 30\n")
+        self.outdirWrong.write("NUM_PERIOD = 2\n")
+        self.outdirWrong.write("BEGIN_TIME = 0\n")
+        self.outdirWrong.write("POLARITY = 1.00\n")
+        self.outdirWrong.write("WITH_EMPTY = TRUE\n")
+        self.outdirWrong.write("NON_LINEAR_SUB = TRUE\n")
+        self.outdirWrong.write("TEMP_DIR = 140159\\Opsens\n")
+        self.outdirWrong.write("TIME_DIR = 140159\\Time\n")
+        self.outdirWrong.write("READ_TIME = TRUE\n")
+        self.outdirWrong.write("H_MIN = 20\n")
+        self.outdirWrong.write("H_MAX = 60\n")
+        self.outdirWrong.write("LEGEND = TEMPERATURE | m_max | osc_time | run_num\n")
+        self.outdirWrong.write("PLOT = H_INT_RECONSTRUCTED_REAL_LIST:M_INT_RECONSTRUCTED_REAL_LIST \n")
+        self.outdirWrong.write("PLOT_LABEL = H (kA/m):M (kA/m)\n")
+        self.outdirWrong.write("PROPERTY_PLOT = TEMPERATURE:HC | INTEGRAL:HC | temperature:osc_time\n")
+        self.outdirWrong.write("PROPERTY_PLOT_LABEL = Temperature(degC):Hc(T) | integral:Hc(T) | Temperature(degC):Time(sec)\n")
+        self.outdirWrong.close()
+        
         self.configFileError = open("errorConfigFile.txt", 'w')
         self.configFileError.close()
         
@@ -175,6 +245,14 @@ class ReaderClassInitTestClass(unittest.TestCase):
         os.remove("correctConfigFile.txt")
         os.remove("errorConfigFile.txt")
         os.remove("emptyFile.txt")
+        os.remove("lastOUT_DIRFolderWrongConfigFile.txt")
+        os.remove("OUT_DIRWrongConfigFile.txt")
+        
+        deleteDir = os.path.abspath(Path("C:\\Users\yeves\\OneDrive - lafayette.edu\\School Documents\\Competition, Research Documents\\SummerResearch2020\\datr"))
+        if os.path.isdir(deleteDir):
+            os.rmdir(deleteDir)
+            
+            
     
     def test_configFileExist(self):
         with self.assertRaises(tools.ReaderError) as error:
@@ -246,7 +324,16 @@ class ReaderClassInitTestClass(unittest.TestCase):
         self.assertEqual(error.exception.message, "Property is not poorly defined or not necessary")
         self.assertEqual(error.exception.expression, "ABBBA")
 
-
+    def test_creationOfLastDirectoryOfPropertyOUT_DIR(self):
+        self.reader = tools.Reader("lastOUT_DIRFolderWrongConfigFile.txt")
+        self.assertTrue(os.path.isdir(self.reader.get("OUT_DIR")))
+        
+        with self.assertRaises(tools.ReaderError) as error:
+            tools.Reader("OUT_DIRWrongConfigFile.txt")
+        
+        self.assertEqual(error.exception.message, "OUT_DIR does not exist.")
+        
+        
 class ReaderClassMethodTestClass(unittest.TestCase):
     
     def setUp(self):

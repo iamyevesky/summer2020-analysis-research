@@ -31,6 +31,7 @@ import re
 from typing import Any, Dict, Tuple, List
 import math
 import matplotlib.pyplot as plt
+from pathlib import Path
 
 class ReaderError(Exception):
     """
@@ -514,8 +515,21 @@ class Reader(object):
                 
         file.close()
         
+        # All directories are converted ito OS-specific directories
+        self._data["OUT_DIR"] = Path(self.get("OUT_DIR"))
+        self._data["BASE_DIR"] = Path(self.get("BASE_DIR"))
+        self._data["H_G_FACTOR_FILE"] = Path(self.get("H_G_FACTOR_FILE"))
+        self._data["M_G_FACTOR_FILE"] = Path(self.get("M_G_FACTOR_FILE"))
+        self._data["DATA_EMPTY"] = Path(self.get("DATA_EMPTY"))
+        self._data["DATA_ACTUAL"] = Path(self.get("DATA_ACTUAL"))
+        self._data["TEMP_DIR"] = Path(self.get("TEMP_DIR"))
+        self._data["TIME_DIR"] = Path(self.get("TIME_DIR"))
+        
         if not os.path.isdir(self.get("OUT_DIR")):
-            raise ReaderError(self.get("OUT_DIR"), "OUT_DIR does not exist.")
+            if not os.path.isdir(os.path.abspath(os.path.join(self.get("OUT_DIR"), '..'))):
+                 raise ReaderError(self.get("OUT_DIR"), "OUT_DIR does not exist.")
+            else:
+                os.mkdir(self.get("OUT_DIR"))
         elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
@@ -538,7 +552,7 @@ class Reader(object):
         self._data["READ_TIME"] = getBool(self.get("READ_TIME"))
         if (self._data["WITH_EMPTY"]):
             try:
-               df = pd.read_csv(os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))
+               df = pd.read_csv(Path(os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY"))))
             except:
                 raise ReaderError(self.get("DATA_EMPTY"),
                                   "DATA_EMPTY file not defined properly or does not exist. File read from directory: " + os.path.join(self.get("BASE_DIR"), self.get("DATA_EMPTY")))
@@ -548,7 +562,7 @@ class Reader(object):
             else:
                 raise ReaderError(self.get("DATA_EMPTY"), "DATA_EMPTY file is not of expected voltage dataset kind")
        
-        path = os.path.join(self.get("BASE_DIR"), self.get("DATA_ACTUAL"))
+        path = Path(os.path.join(self.get("BASE_DIR"), self.get("DATA_ACTUAL")))
         
         readTempData = False
         
@@ -568,7 +582,7 @@ class Reader(object):
             raise ReaderError(self.get("DATA_ACTUAL"), "DATA_ACTUAL path contains no expected voltage data files")
         
         
-        tempPath = os.path.join(self.get("BASE_DIR"), self.get("TEMP_DIR"))
+        tempPath = Path(os.path.join(self.get("BASE_DIR"), self.get("TEMP_DIR")))
         
         if not os.path.exists(tempPath):
             raise ReaderError(tempPath, "Combined BASE_DIR + TEMP_DIR path does not exist.")
@@ -603,7 +617,7 @@ class Reader(object):
         
         if self._data["READ_TIME"]:
             self._data["DICT_DATAFRAME_TIME"] = {}
-            timePath = os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR"))
+            timePath = Path(os.path.join(self.get("BASE_DIR"), self.get("TIME_DIR")))
             
             if not os.path.exists(timePath):
                 raise ReaderError(timePath, "Combined BASE_DIR + TIME_DIR path does not exist.")
@@ -912,7 +926,7 @@ def addDirectory(iPath: str, newPath: str) -> str:
     """
     if not os.path.exists(iPath):
         os.mkdir(iPath)
-    return iPath+'\\'+newPath
+    return os.path.join(iPath, newPath)
     
 def getBool(boolStr: str) -> bool:
     """
