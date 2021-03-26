@@ -515,12 +515,22 @@ class Reader(object):
                 
         file.close()
         
-        if not os.path.isdir(Path(self.get("OUT_DIR"))):
-            if not os.path.abspath(Path(self.get("OUT_DIR")), '..'):
+        # All directories are converted ito OS-specific directories
+        self._data["OUT_DIR"] = Path(self.get("OUT_DIR"))
+        self._data["BASE_DIR"] = Path(self.get("BASE_DIR"))
+        self._data["H_G_FACTOR_FILE"] = Path(self.get("H_G_FACTOR_FILE"))
+        self._data["M_G_FACTOR_FILE"] = Path(self.get("M_G_FACTOR_FILE"))
+        self._data["DATA_EMPTY"] = Path(self.get("DATA_EMPTY"))
+        self._data["DATA_ACTUAL"] = Path(self.get("DATA_ACTUAL"))
+        self._data["TEMP_DIR"] = Path(self.get("TEMP_DIR"))
+        self._data["TIME_DIR"] = Path(self.get("TIME_DIR"))
+        
+        if not os.path.isdir(self.get("OUT_DIR")):
+            if not os.path.isdir(os.path.abspath(os.path.join(self.get("OUT_DIR"), '..'))):
                  raise ReaderError(self.get("OUT_DIR"), "OUT_DIR does not exist.")
             else:
-                os.makedir(Path(self.get("OUT_DIR")))
-        elif not os.path.isdir(Path(self.get("BASE_DIR"))):
+                os.mkdir(self.get("OUT_DIR"))
+        elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
         try:
@@ -916,7 +926,7 @@ def addDirectory(iPath: str, newPath: str) -> str:
     """
     if not os.path.exists(iPath):
         os.mkdir(iPath)
-    return iPath+'\\'+newPath
+    return os.path.join(iPath, newPath)
     
 def getBool(boolStr: str) -> bool:
     """
