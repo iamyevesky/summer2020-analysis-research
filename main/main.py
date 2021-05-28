@@ -14,12 +14,9 @@ can be run on its own on the command line.
 This file can be imported as a module and contains the following class:
     * Main - Central class which runs the analysis program.
 
-It provides the following function:
-    * addDirectory - Joins two string filepaths into one
 """
 
-import os
-from pathlib import Path
+
 import PySimpleGUI as sg
 import analysis
 from tools import Writer, Reader, ReaderError
@@ -384,34 +381,8 @@ class Main(object):
                 Mspecimagforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_IMAG"]
             )
         
-        print("Analysis of actual data completed")
-            
-def addDirectory(iPath: str, newPath: str) -> str:
-    """
-    Creates initial path and joins two directories into one. 
-    
-    Method Example
-    --------------
-    >>> addDirectory("C:\\Documents", "DocumentPath")
-    
-    "C:\\Documents\\DocumentPath"
-
-    Parameters
-    ----------
-    iPath : str
-        Initial path or directory. This is created if it does not exist
-    newPath : str
-        Path to be joined to initial path.
-
-    Returns
-    -------
-    str
-        Full string of joined file-paths.
-    """
-    if not os.path.exists(iPath):
-        os.mkdir(iPath)
-    return iPath+'\\'+newPath
-    
+        print("Analysis of actual data completed")    
+        
 if __name__ == "__main__":
     event, values = sg.Window('Configuration File Selection',
                   [[sg.Text('Select Cogfiguration File: ', size=(25, 1)), 
@@ -426,4 +397,3 @@ if __name__ == "__main__":
         raise ReaderError("Configuration File", "No file was selected in pop-up windows")
     else:
         Main(path).run()
-    
