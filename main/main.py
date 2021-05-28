@@ -16,6 +16,7 @@ This file can be imported as a module and contains the following class:
 
 """
 
+
 import PySimpleGUI as sg
 import analysis
 from tools import Writer, Reader, ReaderError
@@ -380,11 +381,11 @@ class Main(object):
                 Mspecimagforsub = self.dict.get("EMPTY")[0]["M_SPECTRUM_IMAG"]
             )
         
-        print("Analysis of actual data completed")
-    
+        print("Analysis of actual data completed")    
+        
 if __name__ == "__main__":
     event, values = sg.Window('Configuration File Selection',
-                  [[sg.Text('Select Congfiguration File: ', size=(25, 1)), 
+                  [[sg.Text('Select Cogfiguration File: ', size=(25, 1)), 
                     sg.InputText(key='-FILE-'), 
                     sg.FileBrowse()],
                   [sg.B('Run Program')]]).read(close=True)
@@ -396,4 +397,3 @@ if __name__ == "__main__":
         raise ReaderError("Configuration File", "No file was selected in pop-up windows")
     else:
         Main(path).run()
-    
