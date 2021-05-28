@@ -530,6 +530,7 @@ class Reader(object):
                  raise ReaderError(self.get("OUT_DIR"), "OUT_DIR does not exist.")
             else:
                 os.mkdir(self.get("OUT_DIR"))
+                print("OUT_DIR directory was created since path did not exist. Directory created: {}".format(self.get("OUT_DIR")))
         elif not os.path.isdir(self.get("BASE_DIR")):
             raise ReaderError(self.get("BASE_DIR"), "BASE_DIR does not exist.")
             
@@ -544,7 +545,17 @@ class Reader(object):
         except:
             raise ReaderError(self.get("M_G_FACTOR_FILE"),
                               "M_G_FACTOR_FILE not defined properly or does not exist. File read from directory: " + os.path.join(self.get("BASE_DIR"), self.get("M_G_FACTOR_FILE")))
-            
+        
+        if not (substringInList("Frequency", self._data["M_G_FACTOR_DATAFRAME"].columns)
+                or substringInList("gfactor", self._data["M_G_FACTOR_DATAFRAME"].columns)):
+            raise ReaderError(os.path.join(self.get("BASE_DIR"), self.get("M_G_FACTOR_FILE")),
+                             "G-Factor dataset in M_G_FACTOR_FILE is not of expected dataset kind. Reason: Does not have appropriate headers for analysis. Eg: 'Frequency'")
+        
+        if not (substringInList("Frequency", self._data["H_G_FACTOR_DATAFRAME"].columns)
+                and substringInList("gfactor", self._data["H_G_FACTOR_DATAFRAME"].columns)):
+             raise ReaderError(os.path.join(self.get("BASE_DIR"), self.get("M_G_FACTOR_FILE")),
+                             "G-Factor dataset in M_G_FACTOR_FILE is not of expected dataset kind. Reason: Does not have appropriate headers for analysis. Eg: 'Frequency'")
+        
         self._data["DICT_DATAFRAME_ACTUAL"] = {}
         self._data["DICT_DATAFRAME_TEMPERATURE"] = {"TEMP_V_RUN":{}, "TEMP_V_TIME":{}}
         self._data["WITH_EMPTY"] = getBool(self.get("WITH_EMPTY"))
@@ -574,7 +585,7 @@ class Reader(object):
                 readTempData = True
                 df = pd.read_csv(os.path.join(path, file))
                 if not substringInList("Voltage(CH1)", df.columns):
-                    raise ReaderError(file, "Voltage dataset of such filename in DATA_ACTUAL is not of expected voltage dataset kind")
+                    raise ReaderError(file, "Voltage dataset of such filename in DATA_ACTUAL is not of expected voltage dataset kind. Reason: Does not have appropriate headers for analysis. Eg: 'Voltage(CH1)'")
                 else:
                     self._data["DICT_DATAFRAME_ACTUAL"][file.rstrip(".csv")] = df
                 
@@ -630,7 +641,7 @@ class Reader(object):
                     try:
                         dateTime = regex.findall(file)[0]
                     except:
-                        raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
+                        raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset. Expected file name: 'Time_ComparisonRun' + <DATE> + <TIME> + 'CollectionKind' + <KIND_NUM> + '.csv'")
                     
                     try:
                         regex = re.compile(r'CollectionKind\d+')
@@ -643,7 +654,7 @@ class Reader(object):
                             self._data["DICT_DATAFRAME_TIME"][dateTime] = {}
                         self._data["DICT_DATAFRAME_TIME"][dateTime][collectionKind] = df
                     else:
-                        raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset.")
+                        raise ReaderError(file, "Time file of such filename in TIME_DIR is not an expected csv dataset. Reason: Does not have appropriate headers for analysis. Eg: 'Data' or 'Time'")
     
     def get(self, prop: str, kind: bool=False) -> Any:
         """
@@ -790,7 +801,7 @@ class Reader(object):
             if collectionKind in self._data["DICT_DATAFRAME_TIME"][dateTime]:
                 timeDf = self._data["DICT_DATAFRAME_TIME"][dateTime].get(collectionKind)
             else:
-                raise ReaderError(collectionKind, "Time-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TEMP_DIR.")
+                raise ReaderError(collectionKind, "Time-V-Run Series data of dateTime "+ dateTime +" does not have this value of 'CollectionKind' added to TIME_DIR.")
         else:
             raise ReaderError(dateTime, "Time data of this date-time value not added to TIME_DIR.")
         
