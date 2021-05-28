@@ -974,6 +974,6 @@ def substringInList(substring: str, listOfString: List[str]) -> bool:
 
     """
     for word in listOfString:
-        if substring in word:
+        if substring.lower() in word.lower():
             return True
     return False
